@@ -47,6 +47,7 @@ def extract_user_rhythm(signal):
 
     '''
     rhythm_arr = librosa.onset.onset_detect(signal, sr=sr, units='time')
+    raise NotImplementedError('Function not implemented.')
     return rhythm_arr
 
 
@@ -58,6 +59,7 @@ def extract_actual_rhythm(actual_signal, user_tempo):
     Extracts actual rhythm from info from PNG and outputs
     a 1D np.array of times of timesteps of onsets
     '''
+    raise NotImplementedError('Function not implemented.')
     return rhythm_act
 
 
@@ -70,6 +72,7 @@ def compare_rhythm(user_rhythm, actual_rhythm, leniency):
     '''
     errors = []
     score=0
+    raise NotImplementedError('Function not implemented.')
 
     return score, errors
 
@@ -80,6 +83,7 @@ def extract_sheet_music(sheet_music):
 
     Extracts midi from PNG and convert that to an audio signal
     '''
+    raise NotImplementedError('Function not implemented.')
     return actual_signal
 
 ##################################
@@ -94,9 +98,11 @@ def extract_user_pitch(signal):
     Extracts freq (hertz) of user's note at each sample from audio signal
 
     '''
+    raise NotImplementedError('Function not implemented.')
     return pitch_arr
 
-def extract_actual_pitch(actual_signal)
+
+def extract_actual_pitch(actual_signal):
     '''
     Inputs: audio signal (1D np.array)
     Outputs: fundamental freq at each sample (1D np.array)
@@ -104,7 +110,7 @@ def extract_actual_pitch(actual_signal)
     Extracts freq (hertz) of actual note at each sample from audio signal
 
     '''
-
+    raise NotImplementedError('Function not implemented.')
     return pitch_arr
 
 
@@ -117,7 +123,7 @@ def compare_pitch(user_pitch, actual_pitch, pitch_leniency):
     '''
     errors = []
     score=0
-
+    raise NotImplementedError('Function not implemented.')
     return score, errors
 
 
@@ -188,7 +194,4 @@ def find_closest(pitch):
             min_distance = cur_distance
         
     return (index-1)
-
-
-
 
