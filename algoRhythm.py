@@ -2,7 +2,7 @@ from IPython.display import Audio
 import IPython, numpy as np, scipy as sp, matplotlib.pyplot as plt, matplotlib, librosa
 import os, ly
 
-def algoRhythm(audio_path, sheet_music, BPM, rhythm_leniency, pitch_leniency):
+def algoRhythm(audio_path, sheet_music, BPM, rhythm_leniency):
     '''
     Inputs: audio file (.wav), sheet music (.PNG), BPM,
     leninecy (0-5)
@@ -29,7 +29,7 @@ def algoRhythm(audio_path, sheet_music, BPM, rhythm_leniency, pitch_leniency):
     rhythm_score, rhythm_errors = compare_rhythm(user_rhythm, actual_rhythm, rhythm_leniency)
     #pitch_score, pitch_errors = compare_pitch(user_pitch, actual_pitch, pitch_leniency)
 
-    return
+    return rhythm_score, rhythm_errors
 
 def testing():
     mySignal, sr = librosa.load("Testing Data/test5.wav", sr=None)
@@ -40,7 +40,7 @@ def testing():
 
     test_xml = extract_actual_rhythm("Testing Data/test5.xml",  120)
 
-testing()
+#testing()
 
 
 ###################################
