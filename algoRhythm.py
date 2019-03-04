@@ -1,5 +1,6 @@
 from IPython.display import Audio
 import IPython, numpy as np, scipy as sp, matplotlib.pyplot as plt, matplotlib, librosa
+import os, ly
 
 def algoRhythm(audio_path, sheet_music, BPM, rhythm_leniency, pitch_leniency):
     '''
@@ -37,6 +38,8 @@ def testing():
     d_test= calculate_delta_time(test)
     print(d_test)
 
+    test_xml = extract_actual_rhythm("Testing Data/test5.xml",  120)
+
 testing()
 
 
@@ -59,7 +62,7 @@ def extract_user_rhythm(signal):
     return rhythm_arr
 
 
-def extract_actual_rhythm(actual_signal, user_tempo):
+def extract_actual_rhythm(filepath, user_tempo):
     '''
     Inputs: user_tempo (BPM), signal of actual audio from sheet music (1D np.array)
     Outputs: time (sec) of onsets (1D np.array)
@@ -67,8 +70,119 @@ def extract_actual_rhythm(actual_signal, user_tempo):
     Extracts actual rhythm from info from PNG and outputs
     a 1D np.array of times of timesteps of onsets
     '''
-    raise NotImplementedError('Function not implemented.')
-    return rhythm_act
+    
+
+    #skip header information
+    start = data.find('PartPOneVoiceOne') 
+    #improper file type
+    if start == -1:
+        raise ValueError('Improper File Format. File is not Monophonic')
+        
+    #adjust start to begin at PPOVO node
+    start +=  16
+    while data[start] != '{':
+        start += 1
+        
+    PPOVO = data[start:(len(data)-1)]
+    
+    #parse through to find note section
+    onset_times = parse_PPOVO(user_tempo, PPOVO)
+    
+    return onset_times
+
+
+
+def xml_to_ly(filepath, p = False):
+    '''
+    INPUTS: 
+    filepath
+    '''
+    file = './dataset/'+filepath
+    cmd = 'musicxml2ly -a '+file
+    returned_value = os.system(cmd)
+    if returned_value != 0:
+        raise ValueError('File Not Found')
+    if p ==  True:
+        print('returned value:', returned_value)
+
+
+def ly_to_text(filepath):
+    '''
+    INPUTS:    
+        filepath: string to file path of .ly file
+    -----------------------------------------
+    RETURNS:
+        data: string of encoded text from .ly file
+    '''
+    with open(ly_file,encoding='cp1252') as f: #Might have to change encoding depending on how the mac version is
+        data = f.read()
+    return data
+
+
+def parse_PPOVO(bpm, PPOVO):
+    '''
+    INPUTS:
+        bpm: beats per minute integer
+        PPOVO: string of ly file containing note information
+    --------------------------------
+    RETURNS:
+        onset_times: array of all float ground truth onset times
+    '''
+    time = 0.0
+    onset_times = []
+    prev = None
+    i = 0
+    #TODO ADD TRIPLET/TUPLE PARSING
+    while i < len(PPOVO)-1:
+        #c -> current char in .ly text
+        c = PPOVO[i]
+        c_next = PPOVO[i+1]
+        c_next_dig = c_next.isdigit()
+        if(c == "'" or (c == "r" and c_next_dig)): #note or rest found
+            
+            #add note onset
+            if(c=="'"):
+                onset_times.append(time)
+            
+            #parse through note length indicator
+            while(c=="'"):
+            #increment start to skip note indicator
+                i += 1
+                c = PPOVO[i]
+                              
+            
+            #buffer to get note value
+            buffer = ""
+            #keep going until total note len is found (1,2,4,8th,16th,32th note etc)
+            while (c.isdigit()):
+                buffer+=c
+                i+=1
+                c = PPOVO[i]
+            #convert buffer to int to get note typet
+            if(buffer != ""):
+                note_val = int(buffer)
+                duration = note_to_seconds(bpm, note_val)
+                time+=duration
+        i+=1
+            
+    return onset_times     
+
+def note_to_seconds(bpm, note_val):
+    '''
+    INPUTS: 
+        beats per minute integer
+        note_val: type of note in float 
+            1.0 = whole note
+            0.5 = half note
+            etc...
+        
+    -------------------------------
+    RETURNS:
+        duration: note duration in seconds
+    '''
+    duration = (60.0/bpm)*(1.0/note_val)
+    return duration
+
 
 def calculate_delta_time(onsets):
     '''
