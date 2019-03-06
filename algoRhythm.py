@@ -2,6 +2,8 @@ from IPython.display import Audio
 import IPython, numpy as np, scipy as sp, matplotlib.pyplot as plt, matplotlib, librosa
 import os, ly
 
+sr=44100
+
 def algoRhythm(audio_path, sheet_music, BPM, rhythm_leniency):
     '''
     Inputs: audio file (.wav), sheet music (.PNG), BPM,
@@ -38,9 +40,9 @@ def testing():
     d_test= calculate_delta_time(test)
     print(d_test)
 
-    test_xml = extract_actual_rhythm("Testing Data/test5.xml",  120)
+    test_xml = extract_actual_rhythm("./Testing Data/test5.xml",  120)
 
-#testing()
+
 
 
 ###################################

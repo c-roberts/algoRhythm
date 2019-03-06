@@ -48,6 +48,10 @@ def submit():
         progress['text'] = 'Please enter an integer value for tempo.'
     rhythm_score, rhythm_errors = algoRhythm.algoRhythm(audio_path, sheet_music, BPM, leniency)
 
+    # display score 
+    # change color based on score?
+    num_errors = len(rhythm_errors)
+
 def clear():
 
     return
@@ -103,49 +107,90 @@ def helpMe():
 
 window = Tk()
 window.title('algoRhythm')
-window.geometry('1200x508')
-frame1 = Frame(window)
-frame1.pack()
-scrollbar = Scrollbar(frame1)
+window.geometry('1000x450')
+
 #scrollbar.pack(side=RIGHT, fill=Y)
 #text = Text(frame1, width=148, height=30, wrap=WORD, fg='black', yscrollcommand=scrollbar.set)
 #text.config(state=DISABLED)
-leniency = IntVar()
-leniency_scale = Scale(frame1, var=leniency, label="Leniency", from_=1, to=10, orient=HORIZONTAL)
-leniency_scale.pack()
 
-tempo_lab = Label(frame1, text="Tempo (BPM)")
-tempo_lab.pack()
+
+#### INPUT FRAME ####
+in_frame = Frame(window, width=400, height=350)
+in_frame.pack(side=LEFT, anchor=W)
+#scrollbar = Scrollbar(in_frame)
+
+# Load XML/WAV buttons #############
+butt_frame=Frame(in_frame)
+padding1=Frame(in_frame)
+#padding1.grid(row=0, column=0, columnspan= 2, padx=20, pady=30)
+
+in_sheet = Button(butt_frame, text="Input Sheet Music", fg="white", bg="blue", 
+                              activebackground="light blue", command=inputXML,
+                              height=1, width=17, font=('Sans','14','bold'))
+in_sheet.grid(row=0, column=0, padx=20)
+
+in_wav = Button(butt_frame, text="Input Performance", fg="white", bg="green", 
+                            activebackground="light green", command=inputWAV,
+                            height=1, width=17, font=('Sans','14','bold'))
+in_wav.grid(row=0, column=1)
+butt_frame.grid(row=1, column=0, columnspan= 4, padx=20, pady=0)
+
+padding2=Frame(in_frame)
+padding2.grid(row=2, column=0, columnspan= 2, padx=15, pady=30)
+
+# Leniency Input #############
+leniency_lab = Label(in_frame, text="Leniency: ", font=('Sans','13'))
+leniency_lab.grid(row=4, column=0, padx=35, pady=10, sticky=SE)
+
+leniency = IntVar()
+leniency_scale = Scale(in_frame, var=leniency, from_=1, to=10, orient=HORIZONTAL, width=15, length=170)
+leniency_scale.grid(row=4, column=1, pady=10, sticky=SW)
+
+# BPM Input #############
+tempo_lab = Label(in_frame, text="Tempo (BPM): ", font=('Sans','13'))
+tempo_lab.grid(row=6, column=0, padx=35, pady=10, sticky=SE)
 
 tempo = StringVar()
-tempo_ent = Entry(frame1, textvariable=tempo)
-tempo_ent.pack()
-#scrollbar.config(command=text.yview)
-#text.pack()
+tempo_ent = Entry(in_frame, textvariable=tempo, width=16)
+tempo_ent.grid(row=6, column=1, pady=10, sticky=SW)
 
+
+
+# Progress text input #############
 progress = Label(window, text='Please load data files.')
-progress.pack(side=TOP)
+progress.pack(side=BOTTOM)
 
-# generates menu for each event
+#### RESULTS FRAME ####
+out_frame = Frame(window, width=400, height=350)
+out_frame.pack(side=RIGHT, anchor=E, padx=150)
+
+#score = StringVar()
+score="100"
+mistakes="0"
+
+score_lab = Label(out_frame, text="Your score...", font=('Sans','14', 'bold'))
+score_ = Label(out_frame, text=(score + "%"), font=('Sans','50', 'bold'), fg="green" )
+mistakes_ = Label(out_frame, text=(mistakes + " missed rhythms"), font=('Sans','14'))
+
+score_lab.pack()
+score_.pack(pady=15)
+mistakes_.pack()
+
+submit_butt = Button(window, text="Submit", command=submit)
+submit_butt.pack(side=BOTTOM)
+
+
+# generates menu
 menubar = Menu(window)
 window.config(menu=menubar)
 
 operationmenu1 = Menu(menubar, tearoff=0)
-menubar.add_command(label='Import XML', command=inputXML)
-
-operationmenu2 = Menu(menubar, tearoff=0)
-menubar.add_command(label='Import WAV', command=inputWAV)
-
-operationmenu3 = Menu(menubar, tearoff=0)
-menubar.add_command(label='Submit', command=submit)
-
-operationmenu5 = Menu(menubar, tearoff=0)
 menubar.add_command(label='Reset', command=clear)
 
-operationmenu6 = Menu(menubar, tearoff=0)
+operationmenu2 = Menu(menubar, tearoff=0)
 menubar.add_command(label='Help', command=helpMe)
 
-operationmenu7 = Menu(menubar, tearoff=0)
+operationmenu3 = Menu(menubar, tearoff=0)
 menubar.add_command(label='Close', command=closeProgram)
 
 window.mainloop()
