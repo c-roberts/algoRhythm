@@ -46,11 +46,22 @@ def submit():
     BPM = tempo.get()
     if (type(BPM) != int):
         progress['text'] = 'Please enter an integer value for tempo.'
-    rhythm_score, rhythm_errors = algoRhythm.algoRhythm(audio_path, sheet_music, BPM, leniency)
-
+    #rhythm_score, rhythm_errors = algoRhythm.algoRhythm(audio_path, sheet_music, BPM, leniency)
+    rhythm_score = 40
+    rhythm_errors = [4,5,6,7]
     # display score 
     # change color based on score?
-    num_errors = len(rhythm_errors)
+    mistakes = len(rhythm_errors)
+    print(mistakes)
+
+    score_['text'] = str(rhythm_score) + '%'
+    if rhythm_score >= 80:
+        score_['fg'] = 'green'
+    elif rhythm_score >= 60:
+        score_['fg'] = 'orange'
+    else:
+        score_['fg'] = 'red'
+    mistakes_['text']=(str(mistakes) + " missed rhythms")
 
 def clear():
 
@@ -107,16 +118,23 @@ def helpMe():
 
 window = Tk()
 window.title('algoRhythm')
-window.geometry('1000x450')
+window.geometry('1000x400')
+window.resizable(False, False)
 
-#scrollbar.pack(side=RIGHT, fill=Y)
-#text = Text(frame1, width=148, height=30, wrap=WORD, fg='black', yscrollcommand=scrollbar.set)
-#text.config(state=DISABLED)
+
+submit_butt = Button(window, text="Submit", fg="white", bg="orange", 
+                            activebackground="pink", command=submit,
+                            height=1, width=20, font=('Sans','14','bold'))
+submit_butt.pack(side=BOTTOM, anchor=S, fill='both')
+
+# Progress text input #############
+progress = Label(window, text='Please load data files.')
+progress.pack(side=BOTTOM)
 
 
 #### INPUT FRAME ####
-in_frame = Frame(window, width=400, height=350)
-in_frame.pack(side=LEFT, anchor=W)
+in_frame = Frame(window, width=150, height=350)
+in_frame.pack(side=LEFT, anchor=W, fill='x')
 #scrollbar = Scrollbar(in_frame)
 
 # Load XML/WAV buttons #############
@@ -136,7 +154,7 @@ in_wav.grid(row=0, column=1)
 butt_frame.grid(row=1, column=0, columnspan= 4, padx=20, pady=0)
 
 padding2=Frame(in_frame)
-padding2.grid(row=2, column=0, columnspan= 2, padx=15, pady=30)
+#padding2.grid(row=2, column=0, columnspan= 2, padx=15, pady=30)
 
 # Leniency Input #############
 leniency_lab = Label(in_frame, text="Leniency: ", font=('Sans','13'))
@@ -151,18 +169,16 @@ tempo_lab = Label(in_frame, text="Tempo (BPM): ", font=('Sans','13'))
 tempo_lab.grid(row=6, column=0, padx=35, pady=10, sticky=SE)
 
 tempo = StringVar()
-tempo_ent = Entry(in_frame, textvariable=tempo, width=16)
+tempo_ent = Entry(in_frame, textvariable=tempo, width=16, font=('Sans','14'))
 tempo_ent.grid(row=6, column=1, pady=10, sticky=SW)
 
 
 
-# Progress text input #############
-progress = Label(window, text='Please load data files.')
-progress.pack(side=BOTTOM)
+
 
 #### RESULTS FRAME ####
-out_frame = Frame(window, width=400, height=350)
-out_frame.pack(side=RIGHT, anchor=E, padx=150)
+out_frame = Frame(window, width=150, height=350)
+out_frame.pack(side=RIGHT, anchor=E, padx=150, fill='x')
 
 #score = StringVar()
 score="100"
@@ -176,8 +192,7 @@ score_lab.pack()
 score_.pack(pady=15)
 mistakes_.pack()
 
-submit_butt = Button(window, text="Submit", command=submit)
-submit_butt.pack(side=BOTTOM)
+
 
 
 # generates menu
