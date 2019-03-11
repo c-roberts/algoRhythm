@@ -3,12 +3,12 @@ import IPython, numpy as np, scipy as sp, matplotlib.pyplot as plt, matplotlib, 
 from librosa import display
 import os, ly
 
-sr=44100
+standard_sr = 44100
 
-def algoRhythm(audio_path, sheet_music, BPM, rhythm_leniency):
+def algoRhythm(audio_path, sheet_music, bpm, rhythm_leniency):
     '''
     Inputs: audio file (.wav), sheet music (.PNG), BPM,
-    leninecy (0-5)
+    leniency (0-5)
     Outputs: score for rhythmic accuracy, timesteps of any errors
 
     '''
@@ -20,7 +20,7 @@ def algoRhythm(audio_path, sheet_music, BPM, rhythm_leniency):
 
     # Extract rhythm from user and from sheet music
     user_rhythm = extract_user_rhythm(signal)
-    actual_rhythm = extract_actual_rhythm(actual_signal, BPM)
+    actual_rhythm = extract_actual_rhythm(actual_signal, bpm)
 
 
     # Extract pitch from user and from sheet music
@@ -28,39 +28,88 @@ def algoRhythm(audio_path, sheet_music, BPM, rhythm_leniency):
     #actual_pitch = extract_actual_pitch(actual_signal)
 
 
-    # Compare user and correct rhythm
+    # Compare user rhythm with correct rhythm
     rhythm_score, rhythm_errors = compare_rhythm(user_rhythm, actual_rhythm, rhythm_leniency)
     #pitch_score, pitch_errors = compare_pitch(user_pitch, actual_pitch, pitch_leniency)
 
-    # Plot user and correct rhythm over time
-    plot_rhythm(user_rhythm, actual_rhythm, sr)
+    # Plot user rhythm against correct rhythm over time
+    plot_bpm_over_time(user_rhythm, actual_rhythm, sr)
+
+    # Plot onsets of user signal against the correct beat placements
+    plot_performance(signal, actual_signal, sr)
 
     return rhythm_score, rhythm_errors
 
 
-def testing():
-    mySignal, sr = librosa.load("Testing Data/test5.wav", sr=None)
-    test=extract_user_rhythm(mySignal)
-    print(test)
-    d_test= calculate_delta_time(test)
-    print(d_test)
+### Plotting functions ###
 
-    test_xml = extract_actual_rhythm("./Testing Data/test5.xml",  120)
-
-
-def plot_rhythm(user, actual, sr):
+def plot_bpm_over_time(user, actual, sr):
     onset_env_user = librosa.onset.onset_strength(user, sr=sr)
     onset_env_actual = librosa.onset.onset_strength(actual, sr=sr)
     user_rhythm = librosa.beat.tempo(onset_envelope=onset_env_user, sr=sr, aggregate=None)
     actual_rhythm = librosa.beat.tempo(onset_envelope=onset_env_actual, sr=sr, aggregate=None)
 
-    plt.figure()
-    tg = librosa.feature.tempogram(onset_envelope=onset_env_actual, sr=sr, hop_length=512)
+    plt.figure(figsize=(8, 4))
+    tg = librosa.feature.tempogram(onset_envelope=onset_env_actual, sr=sr)
     librosa.display.specshow(tg, x_axis='time', y_axis='tempo')
-    plt.plot(librosa.frames_to_time(np.arange(len(user_rhythm))), user_rhythm, color='w', linewidth=1.5, label='User BPM')
-    plt.plot(librosa.frames_to_time(np.arange(len(actual_rhythm))), actual_rhythm, color='g', linewidth=1.5, label='Actual BPM')
+    user_time = librosa.frames_to_time(np.arange(len(user_rhythm)))
+    actual_time = librosa.frames_to_time(np.arange(len(actual_rhythm)))
+    plt.plot(user_time, user_rhythm, color='r', linewidth=1.5, label='User Signal')
+    plt.plot(actual_time, actual_rhythm, color='g', linewidth=1.5, label='Actual Signal')
     plt.title('User BPM vs Target BPM Over Time')
-    plt.legend(frameon=True, framealpha=0.75)
+    plt.legend(frameon=True)
+    plt.show()
+
+
+def plot_performance(user, actual, sr):
+    onset_env_user = librosa.onset.onset_strength(user, sr=sr, aggregate=np.median)
+    onset_env_actual = librosa.onset.onset_strength(actual, sr=sr, aggregate=np.median)
+    user_rhythm, user_beats = librosa.beat.beat_track(onset_envelope=onset_env_user, sr=sr)
+    actual_rhythm, actual_beats = librosa.beat.beat_track(onset_envelope=onset_env_actual, sr=sr)
+
+    plt.figure(figsize=(8, 4))
+    user_onset_times = librosa.frames_to_time(np.arange(len(onset_env_user)), sr=sr)
+    actual_onset_times = librosa.frames_to_time(np.arange(len(onset_env_actual)), sr=sr)
+    plt.plot(user_onset_times, librosa.util.normalize(onset_env_user), label='User Signal')
+    plt.vlines(actual_onset_times[actual_beats], 0, 1, alpha=0.6, color='r', linestyle='--', label='Target Beats')
+    plt.title('User Signal vs Target Beats')
+    plt.legend(frameon=True)
+    plt.show()
+
+
+### Testing functions ###
+
+def test1():
+    my_signal, sr = librosa.load("Testing Data/test5.wav", sr=None)
+    test=extract_user_rhythm(my_signal)
+    print(test)
+    d_test= calculate_delta_time(test)
+    print(d_test)
+    test_xml = extract_actual_rhythm("./Testing Data/test5.xml", 120)
+    print(test_xml)
+
+
+def test2():
+    path = '/private/var/folders/5k/8mglr1kx0_n1s2knqk0ls10w0000gn/T/algoRhythm.py'
+    correct = '/User Ex1 - 80bpm correct.wav'
+    incorrect = '/User Ex1 - 80bpm incorrect1.wav'
+    signal, sr = librosa.load(path + correct)
+    actual_signal, sr = librosa.load(path + incorrect)
+    bpm = 80
+    user_rhythm = extract_user_rhythm(signal)
+    actual_rhythm = extract_user_rhythm(actual_signal)
+
+    # Compare user rhythm with correct rhythm
+    rhythm_leniency = .15
+    rhythm_score, rhythm_errors = compare_rhythm(user_rhythm, actual_rhythm, rhythm_leniency)
+    print('Score:' + rhythm_score)
+    print('Timesteps of Errors:' + rhythm_errors)
+
+    # Plot user rhythm against correct rhythm over time
+    plot_bpm_over_time(signal, actual_signal, sr)
+
+    # Plot onsets of user signal against the correct beat placements
+    plot_performance(signal, actual_signal, sr)
 
 
 ###################################
@@ -80,6 +129,7 @@ def extract_user_bpm(signal):
     rhythm_arr = librosa.onset.onset_detect(signal, sr=sr, units='time')
 
     return rhythm_arr
+
 
 def extract_user_rhythm(signal):
     '''
@@ -104,7 +154,7 @@ def extract_actual_rhythm(filepath, user_tempo):
     a 1D np.array of times of timesteps of onsets
     '''
     
-
+    data = filepath
     #skip header information
     start = data.find('PartPOneVoiceOne') 
     #improper file type
@@ -228,20 +278,21 @@ def parse_PPOVO(bpm, PPOVO):
             
     return onset_times
 
+
 def note_to_seconds(bpm, note_val):
     '''
-    INPUTS: 
+    INPUTS:
         beats per minute integer
-        note_val: type of note in float 
+        note_val: type of note in float
             1.0 = whole note
             0.5 = half note
             etc...
-        
+
     -------------------------------
     RETURNS:
         duration: note duration in seconds
     '''
-    duration = (60.0/bpm)*(1.0/note_val)
+    duration = (60.0/bpm) * (1.0/note_val)
     return duration
 
 
@@ -273,7 +324,7 @@ def compare_rhythm(user_rhythm, actual_rhythm, leniency):
     d_actual = calculate_delta_time(actual_rhythm)
 
     for i in range(1, d_actual.size):
-        if d_actual-leniency[i] < d_user[i] < d_actual+leniency[i]:
+        if d_actual[i]-leniency < d_user[i] < d_actual[i]+leniency:
             # correct, move on
             print("noice", i)
 
@@ -299,9 +350,11 @@ def extract_sheet_music(sheet_music):
     raise NotImplementedError('Function not implemented.')
     return actual_signal
 
+
 ##################################
 ##      utilities for pitch     ##
 ##################################
+
 
 def extract_user_pitch(signal):
     '''
@@ -393,7 +446,7 @@ def get_cent_diff(user_pitch):
 
 def find_closest(pitch):
     '''
-    Inputs: user pitch (bertz)
+    Inputs: user pitch (hertz)
 
     Returns index of closest in-tune pitch
     '''
