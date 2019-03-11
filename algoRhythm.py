@@ -1,5 +1,6 @@
 from IPython.display import Audio
 import IPython, numpy as np, scipy as sp, matplotlib.pyplot as plt, matplotlib, librosa
+from librosa import display
 import os, ly
 
 sr=44100
@@ -31,7 +32,11 @@ def algoRhythm(audio_path, sheet_music, BPM, rhythm_leniency):
     rhythm_score, rhythm_errors = compare_rhythm(user_rhythm, actual_rhythm, rhythm_leniency)
     #pitch_score, pitch_errors = compare_pitch(user_pitch, actual_pitch, pitch_leniency)
 
+    # Plot user and correct rhythm over time
+    plot_rhythm(user_rhythm, actual_rhythm, sr)
+
     return rhythm_score, rhythm_errors
+
 
 def testing():
     mySignal, sr = librosa.load("Testing Data/test5.wav", sr=None)
@@ -43,12 +48,38 @@ def testing():
     test_xml = extract_actual_rhythm("./Testing Data/test5.xml",  120)
 
 
+def plot_rhythm(user, actual, sr):
+    onset_env_user = librosa.onset.onset_strength(user, sr=sr)
+    onset_env_actual = librosa.onset.onset_strength(actual, sr=sr)
+    user_rhythm = librosa.beat.tempo(onset_envelope=onset_env_user, sr=sr, aggregate=None)
+    actual_rhythm = librosa.beat.tempo(onset_envelope=onset_env_actual, sr=sr, aggregate=None)
+
+    plt.figure()
+    tg = librosa.feature.tempogram(onset_envelope=onset_env_actual, sr=sr, hop_length=512)
+    librosa.display.specshow(tg, x_axis='time', y_axis='tempo')
+    plt.plot(librosa.frames_to_time(np.arange(len(user_rhythm))), user_rhythm, color='w', linewidth=1.5, label='User BPM')
+    plt.plot(librosa.frames_to_time(np.arange(len(actual_rhythm))), actual_rhythm, color='g', linewidth=1.5, label='Actual BPM')
+    plt.title('User BPM vs Target BPM Over Time')
+    plt.legend(frameon=True, framealpha=0.75)
 
 
 ###################################
 ##      utilities for rhythm     ##
 ###################################
 
+
+def extract_user_bpm(signal):
+    '''
+    Inputs: audio signal (1D np.array)
+    Outputs: estimated bpm of user signal
+
+    Uses librosa's onset_detection to extract a 1D np.array
+    of the onsets in an audio signal
+
+    '''
+    rhythm_arr = librosa.onset.onset_detect(signal, sr=sr, units='time')
+
+    return rhythm_arr
 
 def extract_user_rhythm(signal):
     '''
@@ -93,6 +124,33 @@ def extract_actual_rhythm(filepath, user_tempo):
     return onset_times
 
 
+def ly_onsets(bpm, data):
+    '''
+    INPUTS:
+        bpm: beats per minute integer
+        data: string of ly file
+    --------------------------------
+    RETURNS:
+        onset_times: array of floats for time stamps ground truth onsets
+    '''
+    # skip header information
+    start = data.find('PartPOneVoiceOne')
+    # improper file type
+    if start == -1:
+        raise ValueError('Improper File Format. File is not Monophonic')
+
+    # adjust start to begin at PPOVO node
+    start += 16
+    while data[start] != '{':
+        start += 1
+
+    PPOVO = data[start:(len(data) - 1)]
+
+    # parse through to find note section
+    onset_times = parse_PPOVO(bpm, PPOVO)
+
+    return onset_times
+
 
 def xml_to_ly(filepath, p = False):
     '''
@@ -116,7 +174,8 @@ def ly_to_text(filepath):
     RETURNS:
         data: string of encoded text from .ly file
     '''
-    with open(ly_file,encoding='cp1252') as f: #Might have to change encoding depending on how the mac version is
+    ly_file = filepath
+    with open(ly_file, encoding='cp1252') as f: #Might have to change encoding depending on how the mac version is
         data = f.read()
     return data
 
@@ -143,11 +202,11 @@ def parse_PPOVO(bpm, PPOVO):
         if(c == "'" or (c == "r" and c_next_dig)): #note or rest found
             
             #add note onset
-            if(c=="'"):
+            if(c == "'"):
                 onset_times.append(time)
             
             #parse through note length indicator
-            while(c=="'"):
+            while(c == "'"):
             #increment start to skip note indicator
                 i += 1
                 c = PPOVO[i]
@@ -167,7 +226,7 @@ def parse_PPOVO(bpm, PPOVO):
                 time+=duration
         i+=1
             
-    return onset_times     
+    return onset_times
 
 def note_to_seconds(bpm, note_val):
     '''
@@ -206,7 +265,6 @@ def compare_rhythm(user_rhythm, actual_rhythm, leniency):
 
     '''
     errors = []
-    score=0
 
     diff = actual_rhythm.size - user_rhythm.size # extra or missing notes
 
@@ -214,8 +272,8 @@ def compare_rhythm(user_rhythm, actual_rhythm, leniency):
     d_user = calculate_delta_time(user_rhythm)
     d_actual = calculate_delta_time(actual_rhythm)
 
-    for i in range(1,d_actual.size):
-        if ( (d_actual-leniency ) < d_user < ( d_actual+leniency )):
+    for i in range(1, d_actual.size):
+        if d_actual-leniency[i] < d_user[i] < d_actual+leniency[i]:
             # correct, move on
             print("noice", i)
 
@@ -224,10 +282,10 @@ def compare_rhythm(user_rhythm, actual_rhythm, leniency):
             errors.append(user_rhythm[i])
 
             # try to figure out if extra
+            # not implemented
 
-    score = (len(errors) / actual_rhythm.size) * 100
+    score = 100 - (len(errors) / actual_rhythm.size) * 100
 
-    raise NotImplementedError('Function not implemented.')
     return score, errors
 
 
