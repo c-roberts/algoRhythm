@@ -1,6 +1,7 @@
 from IPython.display import Audio
 import IPython, numpy as np, scipy as sp, matplotlib.pyplot as plt, matplotlib, librosa
-import os, ly
+import os
+from ly import*
 
 sr=44100
 
@@ -64,13 +65,14 @@ def extract_user_rhythm(signal):
     return rhythm_arr
 
 
-def extract_actual_rhythm(filepath, user_tempo):
+def extract_actual_rhythm(data, user_tempo):
     '''
-    Inputs: user_tempo (BPM), signal of actual audio from sheet music (1D np.array)
-    Outputs: time (sec) of onsets (1D np.array)
-
-    Extracts actual rhythm from info from PNG and outputs
-    a 1D np.array of times of timesteps of onsets
+    INPUTS:
+        bpm: beats per minute integer
+        data: string of ly file
+    --------------------------------
+    RETURNS:
+        onset_times: array of floats for time stamps ground truth onsets
     '''
     
 
@@ -97,9 +99,10 @@ def extract_actual_rhythm(filepath, user_tempo):
 def xml_to_ly(filepath, p = False):
     '''
     INPUTS: 
-    filepath
+        filepath: location of xml file
+        p: bool to print cmd response
     '''
-    file = './dataset/'+filepath
+    file = './Test_Data/'+filepath
     cmd = 'musicxml2ly -a '+file
     returned_value = os.system(cmd)
     if returned_value != 0:
@@ -134,42 +137,86 @@ def parse_PPOVO(bpm, PPOVO):
     onset_times = []
     prev = None
     i = 0
-    #TODO ADD TRIPLET/TUPLE PARSING
-    while i < len(PPOVO)-1:
+    is_tuple = False    
+    tuple_fraction = 1.0
+    
+    #parse through PPOVO section
+    while i < len(PPOVO)-2:
         #c -> current char in .ly text
         c = PPOVO[i]
         c_next = PPOVO[i+1]
         c_next_dig = c_next.isdigit()
-        if(c == "'" or (c == "r" and c_next_dig)): #note or rest found
-            
-            #add note onset
-            if(c=="'"):
-                onset_times.append(time)
-            
-            #parse through note length indicator
-            while(c=="'"):
-            #increment start to skip note indicator
-                i += 1
+        
+        if(c == "\\"): #check for override
+            i+=1
+            tuplecheck = PPOVO.find("override TupletBracket",i) #check for tuple override
+            if(tuplecheck == i): #tuple override found
+                i = PPOVO.find("times",i)
+                i += 6 #skip to find ft
+                n_buffer = ""
+                d_buffer = ""
                 c = PPOVO[i]
-                              
+                
+                while c != "/": #get ft numerator
+                    if(c.isdigit()):
+                        n_buffer += c
+                    i +=1
+                    c = PPOVO[i]                  
+                
+                while c != " ": #get ft denominator
+                    if(c.isdigit()):
+                        d_buffer += c
+                    i +=1
+                    c = PPOVO[i]
+                tuple_fraction = float(n_buffer)/float(d_buffer)
+                is_tuple = True
+                
+        elif(is_tuple and c == "}"): #check for end of tuple overide, reset values
+            is_tuple = False
+            tuple_fraction = 1
             
-            #buffer to get note value
+        elif(c == "'" or (c == "r" and c_next_dig)): #note or rest found    
+            #add note onset
+            t = None
+            if(c == "'"):
+                t = "note"
+                onset_times.append(time)               
+                #parse through note length indicator
+                while(c == "'"):
+                    i += 1
+                    c = PPOVO[i]
+            else:
+                t = "rest"
+                i+=1
+                c = PPOVO[i]
+                
+            #buffer to get note/rest value
             buffer = ""
             #keep going until total note len is found (1,2,4,8th,16th,32th note etc)
             while (c.isdigit()):
                 buffer+=c
                 i+=1
                 c = PPOVO[i]
-            #convert buffer to int to get note typet
+                
+            if(c == "."): #adjust tuple_fraction for dotted note
+                tuple_fraction = 1.5
+                
+            #convert buffer to int to get note type
             if(buffer != ""):
                 note_val = int(buffer)
-                duration = note_to_seconds(bpm, note_val)
+                duration = note_to_seconds(bpm, note_val,tf=tuple_fraction)
                 time+=duration
+            
+            if(c == "."): #revert tf back back
+                tuple_fraction = 1.0
+    
+#             print("buffer:",buffer)
+#             print("Type:",t,"Length:",note_val,"Duration:",duration)
         i+=1
             
-    return onset_times     
+    return onset_times
 
-def note_to_seconds(bpm, note_val):
+def note_to_seconds(bpm, note_val,tf=1.0):
     '''
     INPUTS: 
         beats per minute integer
@@ -182,7 +229,7 @@ def note_to_seconds(bpm, note_val):
     RETURNS:
         duration: note duration in seconds
     '''
-    duration = (60.0/bpm)*(1.0/note_val)
+    duration = (60.0/bpm)*(4.0/note_val)*tf
     return duration
 
 
