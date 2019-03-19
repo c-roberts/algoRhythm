@@ -16,72 +16,45 @@
 <div class="super_container">
 	
 	<!-- Header -->
-
 	<header class="header">
 		<div class="container">
 			<div class="row">
 				<div class="col">
 					<div class="header_content d-flex flex-row align-items-center justify-content-center">
-
+	
 						<!-- Logo -->
 						<div class="logo">
 							<a href="#" class="d-flex flex-row align-items-end justify-content-start">
 								<span class="logo_bars d-flex flex-row align-items-end justify-content-between"><span></span><span></span><span></span><span></span><span></span></span>
-								<span class="logo_text">music</span>
+								<span class="logo_text">algoRhythm</span>
 							</a>
 						</div>
-
+	
 						<!-- Main Navigation -->
 						<nav class="main_nav">
 							<ul class="d-flex flex-row align-items-center justify-content-start">
 								<li><a href="index.html">Home</a></li>
-								<li><a href="artists.html">Artists</a></li>
-								<li><a href="#">Download Music</a></li>
-								<li><a href="blog.html">News</a></li>
-								<li class="active"><a href="contact.html">Contact</a></li>
+								<li><a href="about.html">About</a></li>
+								<li><a href="https://github.com/c-roberts/algoRhythm/tree/master/Testing%20Data">Dataset</a></li>
+								<li><a href="blog.html">Github</a></li>
+								<li><a style="color: #2ac275;" href="contact.html">Contact</a></li>
 							</ul>
 						</nav>
-
-						<!-- User area -->
-						<div class="log_reg d-flex flex-row align-items-center justify-content-start">
-							<ul class="d-flex flex-row align-items-start justify-content-start">
-								<li><a href="#">Login</a></li>
-								<li><a href="#">Register</a></li>
-							</ul>
-
-							<!-- Hamburger -->
-							<div class="hamburger d-flex flex-column align-items-end justify-content-between"><div></div><div></div><div></div></div>
-						</div>
+	
 					</div>
 				</div>
 			</div>
 		</div>
 	</header>
 
-	<!-- Menu -->
 
-	<div class="menu">
-		<div class="menu_container">
-			<div class="menu_background"></div>
-			<div class="menu_close"><i class="fa fa-times" aria-hidden="true"></i></div>
-			<div class="menu_content d-flex flex-column align-items-center justify-content-start">
-				<nav class="menu_nav">
-					<ul class="d-flex flex-column align-items-center justify-content-start">
-						<li><a href="index.html">Home</a></li>
-						<li><a href="artists.html">Artists</a></li>
-						<li><a href="#">Download Music</a></li>
-						<li><a href="blog.html">News</a></li>
-						<li><a href="contact.html">Contact</a></li>
-					</ul>
-				</nav>
-			</div>
-		</div>
-	</div>
+
+
 
 	<!-- Home -->
 
 	<div class="home">
-		<div class="parallax_background parallax-window" data-parallax="scroll" data-image-src="images/contact.jpg" data-speed="0.8"></div>
+		<div class="parallax_background parallax-window" data-parallax="scroll" data-image-src="images/background2.jpg" data-speed="0.8"></div>
 		<div class="home_container">
 			<div class="container">
 				<div class="row">
@@ -104,34 +77,39 @@
 				<!-- Contact Content -->
 				<div class="col-lg-5">
 					<div class="contact_content">
-						<div class="contact_title">Get in touch</div>
 						<div class="contact_text">
-							<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi condimentum, neque ac porttitor scelerisque, nisi nisl tincidunt enim, non aliquet diam neque sed urna nequ.</p>
-						</div>
+							<p><b>AlgoRhythm</b> was created for EECS 352 at Northwestern University, 
+								instructed by <a href="http://www.cs.northwestern.edu/~pardo/"> Dr. Bryan Pardo</a>. </p>
+
+							</div>
 						<div class="contact_list">
 							<ul>
-								<li><span>Address:</span> Main Str, no 253, New York, NY</li>
-								<li><span>Phone:</span> +546 990221 123</li>
-								<li><span>E-mail</span> music@contact.com</li>
+								<li><span>E-mail:</span> algoRhythm@u.northwestern.edu</li>
 							</ul>
 						</div>
 					</div>
 				</div>
+				
+				<div class="team_area">
+					<h2>Team Members</h2>
+					<div id="team">
+						<img id="team_img" src="images/casey_headshot.jpg" alt="" width="150" height="150">
+						Casey Poon<br>
+						<div id="social"><a href="https://www.linkedin.com/in/pooncasey/"><img  src="images/linkedin.png" alt="" width="30" height="30">
+						</a><a href="https://github.com/clrpoon"><img  src="images/github.png" alt="" width="30" height="30"></a></div>
+					</div>
+					<div id="team">
+						<img  id="team_img" src="images/cameron_headshot.jpg" alt="" width="150" height="150">
+						Cameron Roberts
+						<div id="social"><a href="https://www.linkedin.com/in/cameron-roberts-1b112a160/"><img  src="images/linkedin.png" alt="" width="30" height="30">
+						</a><a href="https://github.com/c-roberts"><img  src="images/github.png" alt="" width="30" height="30"></a></div>
 
-				<!-- Contact Form -->
-				<div class="col-lg-6 offset-lg-1 contact_col">
-					<div class="contact_form_container">
-						<form action="#" class="contact_form" id="contact_form">
-							<div>
-								<div class="row">
-									<div class="col-md-6 contact_input_col"><input type="text" class="contact_input" placeholder="Your Name" required="required"></div>
-									<div class="col-md-6"><input type="email" class="contact_input" placeholder="Your E-mail" required="required"></div>
-								</div>
-							</div>
-							<div><input type="text" class="contact_input" placeholder="Subject" required="required"></div>
-							<div><textarea class="contact_input contact_textarea" placeholder="Message" required="required"></textarea></div>
-							<button class="button contact_form_button"><span>send</span></button>
-						</form>
+					</div>
+					<div id="team">
+						<img  id="team_img" src="images/nathan_headshot.jpg" alt="" width="150" height="150">
+						Nathan Xu<br>
+						<div id="social"><a href="https://www.linkedin.com/in/nathan-xu-a17042156/"><img  src="images/linkedin.png" alt="" width="30" height="30">
+						</a><a href="https://github.com/nathanlxu"><img  src="images/github.png" alt="" width="30" height="30"></a></div>
 					</div>
 				</div>
 
@@ -139,53 +117,8 @@
 		</div>
 	</div>
 
-	<!-- Contact Map -->
 
-	<div class="contact_map">
 
-		<!-- Google Map -->
-		
-		<div class="map">
-			<div id="google_map" class="google_map">
-				<div class="map_container">
-					<div id="map"></div>
-				</div>
-			</div>
-		</div>
-
-	</div>
-
-	<!-- Newsletter -->
-
-	<div class="newsletter">
-		<div class="container">
-			<div class="row">
-
-				<!-- Newsletter Content -->
-				<div class="col-xl-6">
-					<div class="newsletter_content">
-						<div class="section_title"><h1>Subscribe & Follow</h1></div>
-						<div class="newsletter_text">
-							<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi condimentum, neque ac porttitor scelerisque.</p>
-						</div>
-					</div>
-				</div>
-
-				<!-- Newsletter Form -->
-				<div class="col-xl-6 nl_col">
-					<div class="newsletter_form_container d-flex flex-column align-items-start justify-content-end">
-						<form action="#" class="newsletter_form" id="newsletter_form">
-							<div class="d-flex flex-row align-items-start justify-content-between">
-								<input type="email" class="newsletter_input" placeholder="Your E-mail" required="required">
-								<button class="button newsletter_button"><span>subscribe</span></button>
-							</div>
-						</form>
-					</div>
-				</div>
-
-			</div>
-		</div>
-	</div>
 
 	<!-- Footer -->
 
@@ -200,20 +133,11 @@
 						<div class="logo">
 							<a href="#" class="d-flex flex-row align-items-end justify-content-start">
 								<span class="logo_bars d-flex flex-row align-items-end justify-content-between"><span></span><span></span><span></span><span></span><span></span></span>
-								<span class="logo_text">music</span>
+								<span class="logo_text">algoRhythm</span>
 							</a>
 						</div>
 
 						<!-- Footer Social -->
-						<div class="footer_social">
-							<ul class="d-flex flex-row align-items-center justify-content-center">
-								<li><a href="#"><i class="fa fa-pinterest" aria-hidden="true"></i></a></li>
-								<li><a href="#"><i class="fa fa-facebook" aria-hidden="true"></i></a></li>
-								<li><a href="#"><i class="fa fa-twitter" aria-hidden="true"></i></a></li>
-								<li><a href="#"><i class="fa fa-dribbble" aria-hidden="true"></i></a></li>
-								<li><a href="#"><i class="fa fa-behance" aria-hidden="true"></i></a></li>
-							</ul>
-						</div>
 
 					</div>
 				</div>
@@ -232,6 +156,8 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
 		</div>
 			
 	</footer>
+
+
 </div>
 
 <script src="js/jquery-3.3.1.min.js"></script>
