@@ -758,7 +758,7 @@ section
 }
 .contact_list
 {
-	margin-top: 50px;
+	margin-top: 20px;
 }
 .contact_list ul li
 {
@@ -774,10 +774,6 @@ section
 .contact_list ul li span
 {
 	color: #2ac275;
-}
-.contact_form_container
-{
-
 }
 .contact_form > div:not(:last-of-type)
 {

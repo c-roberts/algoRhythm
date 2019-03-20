@@ -719,7 +719,7 @@ section
 /*********************************
 6.1 DEP
 *********************************/
-dep ul li a {
+.dep ul li a {
 	text-decoration: none;
 	-webkit-font-smoothing: antialiased;
 	-webkit-text-shadow: rgba(0,0,0,.01) 0 0 1px;
@@ -727,6 +727,10 @@ dep ul li a {
 }
 #dep {
 	padding-bottom: 30px;
+}
+
+.text-area p{
+	padding-bottom:0px;
 }
 
 

@@ -91,7 +91,7 @@
 
 	<div class="elements">
 		<div class="container">
-			<div id="text-area">
+			<div class="text-area">
 				<h3>Dependencies</h3>
 				<div class="dep"><ul style="padding-left:15px;">
 					<li><a href="https://www.python.org/downloads/release/python-371/">Python 3.5+</a></li>
@@ -102,21 +102,28 @@
 
 				</ul></div><br>
 				<h3>Backend</h3>
-					<p>
+					
 						<img style="display:block;margin:auto;" id="flow" src="images/flow.png" alt="Control flow for algoRhythm" width="800" height="170">
-						<br>The user inputs an XML score and their performance of it.<br>
+						<p><br>The user inputs an XML score and their performance of it.
 						The score is converted to the Lilypond format, which is easily parsable as text. The duration of notes is read, and the 
 						timesteps of the onsets are then derived based on the user's tempo and outputted into a Numpy arrray. The onsets of the 
 						user's performance are obtained using Librosa's <a href="https://librosa.github.io/librosa/generated/librosa.onset.onset_detect.html">
-						onset detection</a> module.<br>
+						onset detection</a> module.</p>
 
-						...
+						<p>The two arrays are compared iteratively using what we call <i>delta-time</i>. This is calculated as <i>dt<sub>i</sub> =
+						time<sub>i</sub> - time<sub>i-1</sub></i>. If the user adds an extra note or misses an early rhythm, the later relationships are 
+						preserved, whereas if we looked solely at the timesteps of onsets, any early mistake would shift later onsets. This also aligns the first onset
+						to zero, compensating for any empty space in the user's recording.</p>
+
+						<p>As a perfect performance is humanly impossible, we use a leniency value to allow for some amount of error tolerance; this is scalable by
+						the user to control for differing skills levels. If the user's onset is outside of the tolerance, it is marked as incorrect, and the 
+						timestep and index are recorded. A final accuract score is calculated at the end given by the ratio of correct notes over the total notes.
 					</p><br>
 
 				<h3>Interface</h3>
-					<p>
+					<p>Our interface is implemented in Tkinter, Python's de-facto standard GUI package:<br><br>
 						<img style="display:block;margin:auto;padding-bottom:40px;" src="images/interface1.png" alt="Control flow for algoRhythm" width="800" height="400">
-						<img style="display:block;margin:auto;" src="images/interface2.png" alt="Control flow for algoRhythm" width="800" height="400">
+						<img style="display:block;margin:auto;" src="images/interface2.png" alt="Control flow for algoRhythm" width="800" height="400"><br>
 					</p>
 				<h3>Dataset</h3>
 					<p>
@@ -124,10 +131,20 @@
 						XML scores, MIDI piano WAVs, and human performances of our scores at varying levels
 						of correctness. You can access our testing set <a href="https://github.com/c-roberts/algoRhythm/tree/master/Testing%20Data">here</a>.
 					</p>
-				<h3>Related Research</h3>
-					<p>
+				<br><h3>Related Research</h3>
+					<p><a href="www.jstor.org/stable/3680714">Chin, Francis, and Stephen Wu. “An Efficient Algorithm for Rhythm-Finding.” Computer Music Journal, vol. 16, no. 2, 
+					1992, pp. 35–44.</a> </p>
 
-					</p>
+					<p><a href="www.ee.columbia.edu/~dpwe/pubs/Ellis07-beattrack.pdf">Ellis, Daniel (2007). “Beat Tracking by Dynamic Programming.” J. New Music Research, Special Issue on Beat and
+							Tempo Extraction, vol. 36 no. 1, March 2007, pp. 51-60. 
+							DOI: 10.1080/09298210701653344</a></p> 
+					
+					<p><a href=" https://asa.scitation.org/doi/pdf/10.1121/1.421129?class=pdf.">Scheirer, Eric D. “Tempo and Beat Analysis of Acoustic Musical Signals.” The Journal of the 
+						Acoustical Society of America, vol. 103, no. 1, 1998, pp. 588–601., 
+						doi:10.1121/1.421129</a></p>
+					
+					<p><a href="https://ieeexplore.ieee.org/abstract/document/6287906">A. Gkiokas, V. Katsouros, G. Carayannis and T. Stajylakis, "Music tempo estimation and beat tracking by applying source separation and metrical relations," 2012 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), Kyoto, 2012, pp. 421-424.
+					doi: 10.1109/ICASSP.2012.6287906</a></p>
 			</div>
 
 		</div>
