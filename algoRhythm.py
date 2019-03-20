@@ -58,6 +58,7 @@ def plot_performance(user, actual, sr):
     onset_env_actual = librosa.onset.onset_strength(actual, sr=sr, aggregate=np.median)
     user_rhythm, user_beats = librosa.beat.beat_track(onset_envelope=onset_env_user, sr=sr)
     actual_rhythm, actual_beats = librosa.beat.beat_track(onset_envelope=onset_env_actual, sr=sr)
+    nrms = np.sqrt(((user_rhythm - actual_rhythm) ** 2).mean()) / np.mean(actual_rhythm)
 
     plt.figure(figsize=(8, 4))
     user_onset_times = librosa.frames_to_time(np.arange(len(onset_env_user)), sr=sr)
@@ -68,7 +69,7 @@ def plot_performance(user, actual, sr):
     plt.legend(frameon=True)
     plt.show()
 
-    return user_rhythm, actual_rhythm
+    return user_rhythm, actual_rhythm, nrms
 
 
 ###################################
@@ -269,12 +270,12 @@ def calculate_delta_time(onsets):
 
 
 def compare_rhythm(user_rhythm, actual_rhythm, leniency):
-    '''
+    """
     Inputs: user's rhythm (np.array of timesteps of onsets), actual
     rhythm (np.array of timesteps of onsets)
     Outputs: score for accuracy (0-100), timesteps of errors (list)
 
-    '''
+    """
     errors = []
 
     diff = actual_rhythm.size - user_rhythm.size # extra or missing notes
@@ -302,6 +303,33 @@ def compare_rhythm(user_rhythm, actual_rhythm, leniency):
     return score, errors
 
 
+def search_onsets(onsets, lo, hi):
+    """
+    Binary search helper function to get user onset closest to target onset
+
+    Inputs: array of onsets, lower leniency bound, upper leniency bound
+    Outputs: array index of user onset closest to target onset, whether user onset is within leniency range
+    """
+
+    l = 0
+    r = len(onsets) - 1
+
+    while l <= r:
+
+        m = int(l + (r - l) / 2)
+
+        if lo <= onsets[m] <= hi:
+            return m, True
+
+        elif onsets[m] < hi:
+            l = m + 1
+
+        else:
+            r = m - 1
+
+    return m - 1, False
+
+
 def compare_onsets(user_signal, actual_signal, leniency):
     '''
     Inputs: user signal, actual signal, leniency for error
@@ -318,14 +346,22 @@ def compare_onsets(user_signal, actual_signal, leniency):
 
     error_margins = []
     error_timestamps = []
+    last_ind = 0
     for i in range(1, len(actual_onsets)):
-        aligned = user_onsets[(user_onsets >= actual_onsets[i]-leniency) & (user_onsets <= actual_onsets[i]+leniency)]
-        if len(aligned) > 0:
+        # aligned = user_onsets[(user_onsets >= actual_onsets[i]-leniency) & (user_onsets <= actual_onsets[i]+leniency)]
+        # if len(aligned) > 0:
         # if at least than one user onset is detected to fall within the leniency region around the actual onset
+        #    error_margins.append(0)
+
+        closest_onset = search_onsets(user_onsets, actual_onsets[i]-leniency, actual_onsets[i]+leniency)
+        if closest_onset[1]: # if onset is within leniency range
             error_margins.append(0)
         else:
-            error_timestamps.append(user_onsets[i])
-            error_margins.append(round(user_onsets[i] - actual_onsets[i], 3))
+            ind = closest_onset[0]
+            if ind != last_ind:
+                error_timestamps.append(round(user_onsets[ind], 2))
+                error_margins.append(round(user_onsets[ind] - actual_onsets[i], 2))
+            last_ind = ind
 
     score = 100 - (len(error_timestamps) / actual_onsets.size) * 100
 
@@ -503,19 +539,20 @@ def test2():
 
     # Compare user rhythm with correct rhythm
     rhythm_leniency = .05
-    rhythm_score, rhythm_errors = compare_rhythm(user_rhythm, actual_rhythm, rhythm_leniency)
+    #rhythm_score, rhythm_errors = compare_rhythm(user_rhythm, actual_rhythm, rhythm_leniency)
     score, error_margins, error_timestamps = compare_onsets(signal, actual_signal, rhythm_leniency)
     print('Error margins per onset:', error_margins)
-    print('Score:', rhythm_score)
-    print('Timesteps of Errors:', rhythm_errors)
+    print('Timesteps of Errors:', error_timestamps)
+    print('Score:', score)
 
     # Plot user rhythm against correct rhythm over time
     plot_bpm_over_time(signal, actual_signal, sr)
 
     # Plot onsets of user signal against the correct beat placements
-    user_bpm, target_bpm = plot_performance(signal, actual_signal, sr)
+    user_bpm, target_bpm, nrmse = plot_performance(signal, actual_signal, sr)
     print('User BPM:', round(user_bpm, 1))
     print('Target BPM:', round(target_bpm, 1))
+    print('Normalized Root Mean Squared Error:', round(nrmse, 3))
 
 
 ### Run tests ###
