@@ -17,20 +17,12 @@ def algoRhythm(audio_path, sheet_music, bpm, rhythm_leniency):
     #actual_signal = extract_sheet_music(sheet_music)
     #create_freq_dict()
 
-
     # Extract rhythm from user and from sheet music
     user_rhythm = extract_user_rhythm(signal, sr)
     actual_rhythm = extract_actual_rhythm(sheet_music, bpm)
 
-
-    # Extract pitch from user and from sheet music
-    #user_pitch = extract_user_pitch(signal)
-    #actual_pitch = extract_actual_pitch(actual_signal)
-
-
     # Compare user rhythm with correct rhythm
     rhythm_score, rhythm_errors = compare_rhythm(user_rhythm, actual_rhythm, rhythm_leniency)
-    #pitch_score, pitch_errors = compare_pitch(user_pitch, actual_pitch, pitch_leniency)
 
     # Plot user rhythm against correct rhythm over time
     plot_bpm_over_time(user_rhythm, actual_rhythm, sr)
@@ -76,66 +68,7 @@ def plot_performance(user, actual, sr):
     plt.legend(frameon=True)
     plt.show()
 
-
-### Testing functions ###
-
-def test1():
-    '''
-    my_signal, sr = librosa.load("Testing Data/test5.wav", sr=None)
-    test=extract_user_rhythm(my_signal)
-    print(test)
-    d_test= calculate_delta_time(test)
-    print(d_test)
-    test_xml = extract_actual_rhythm("./Testing Data/test5.xml", 120)
-    print(test_xml)
-    '''
-    audio_path = "./Testing Data/User Ex1 - 80bpm correct.wav"
-    sheet_music = "./Testing Data/User Ex1 score.xml"
-    bpm=80
-    rhythm_leniency = .5
-
-    signal, sr = librosa.load(audio_path, sr=None)
-
-    user_rhythm = extract_user_rhythm(signal, sr)
-    #print(user_rhythm)
-    #actual_rhythm = extract_actual_rhythm(sheet_music, bpm)
-    incorrect, sr = librosa.load( "./Testing Data/User Ex1 - 80bpm incorrect1.wav", sr=None)
-    #print(actual_rhythm)
-    incorrect_rhythm = extract_user_rhythm(incorrect, sr)
-    #print(incorrect_rhythm)
-    rhythm_score, rhythm_errors = compare_rhythm(user_rhythm, incorrect_rhythm, rhythm_leniency)
-
-    print("\n\n------------ Results ------------")
-    print("\nIncorrect length: " + str(incorrect_rhythm.size))
-    print("Correct length: " + str(user_rhythm.size))
-    print("Rhythm Score: " + str(rhythm_score))
-    print("Number of errors: " + str(len(rhythm_errors)))
-
-
-    #test_score, test_errors = algoRhythm(audio_path, sheet_music, bpm, rhythm_leniency)
-
-
-def test2():
-    path = '/private/var/folders/5k/8mglr1kx0_n1s2knqk0ls10w0000gn/T/algoRhythm.py'
-    correct = '/User Ex1 - 80bpm correct.wav'
-    incorrect = '/User Ex1 - 80bpm incorrect1.wav'
-    signal, sr = librosa.load(path + correct)
-    actual_signal, sr = librosa.load(path + incorrect)
-    bpm = 80
-    user_rhythm = extract_user_rhythm(signal, sr)
-    actual_rhythm = extract_user_rhythm(actual_signal, sr)
-
-    # Compare user rhythm with correct rhythm
-    rhythm_leniency = .15
-    rhythm_score, rhythm_errors = compare_rhythm(user_rhythm, actual_rhythm, rhythm_leniency)
-    print('Score:' + rhythm_score)
-    print('Timesteps of Errors:' + rhythm_errors)
-
-    # Plot user rhythm against correct rhythm over time
-    plot_bpm_over_time(signal, actual_signal, sr)
-
-    # Plot onsets of user signal against the correct beat placements
-    plot_performance(signal, actual_signal, sr)
+    return user_rhythm, actual_rhythm
 
 
 ###################################
@@ -152,6 +85,7 @@ def extract_user_bpm(signal):
     of the onsets in an audio signal
 
     '''
+    sr = standard_sr
     rhythm_arr = librosa.onset.onset_detect(signal, sr=sr, units='time')
 
     return rhythm_arr
@@ -327,9 +261,9 @@ def calculate_delta_time(onsets):
     Inputs: onsets from user signal or sheet music rhythm
     Outputs: difference in time from each onset to the next
     '''
-    d_time=np.zeros(onsets.shape)
+    d_time = np.zeros(onsets.shape)
     for i in range(1, onsets.size-1, 1):
-        d_time[i]=onsets[i]-onsets[i-1]
+        d_time[i] = onsets[i] - onsets[i-1]
 
     return d_time
 
@@ -366,6 +300,36 @@ def compare_rhythm(user_rhythm, actual_rhythm, leniency):
     score = 100 - (len(errors) / actual_rhythm.size) * 100
 
     return score, errors
+
+
+def compare_onsets(user_signal, actual_signal, leniency):
+    '''
+    Inputs: user signal, actual signal, leniency for error
+    Outputs: evaluation score based on number of correctly placed onsets,
+             error of user onset in seconds,
+             timesteps of user onset errors
+    '''
+    user_onsets = librosa.onset.onset_detect(user_signal, sr=standard_sr, units='time')
+    actual_onsets = librosa.onset.onset_detect(actual_signal, sr=standard_sr, units='time')
+
+    # align first onset to time 0
+    # user_onsets = np.subtract(user_onsets, user_onsets[0])
+    # actual_onsets = np.subtract(actual_onsets, actual_onsets[0])
+
+    error_margins = []
+    error_timestamps = []
+    for i in range(1, len(actual_onsets)):
+        aligned = user_onsets[(user_onsets >= actual_onsets[i]-leniency) & (user_onsets <= actual_onsets[i]+leniency)]
+        if len(aligned) > 0:
+        # if at least than one user onset is detected to fall within the leniency region around the actual onset
+            error_margins.append(0)
+        else:
+            error_timestamps.append(user_onsets[i])
+            error_margins.append(round(user_onsets[i] - actual_onsets[i], 3))
+
+    score = 100 - (len(error_timestamps) / actual_onsets.size) * 100
+
+    return score, error_margins, error_timestamps
 
 
 def extract_sheet_music(sheet_music):
@@ -489,4 +453,71 @@ def find_closest(pitch):
     return (index-1)
 
 
-test1()
+### Testing functions ###
+
+def test1():
+    '''
+    my_signal, sr = librosa.load("Testing Data/test5.wav", sr=None)
+    test=extract_user_rhythm(my_signal)
+    print(test)
+    d_test= calculate_delta_time(test)
+    print(d_test)
+    test_xml = extract_actual_rhythm("./Testing Data/test5.xml", 120)
+    print(test_xml)
+    '''
+    audio_path = "./Testing Data/User Ex1 - 80bpm correct.wav"
+    sheet_music = "./Testing Data/User Ex1 score.xml"
+    bpm=80
+    rhythm_leniency = .5
+
+    signal, sr = librosa.load(audio_path, sr=None)
+
+    user_rhythm = extract_user_rhythm(signal, sr)
+    #print(user_rhythm)
+    #actual_rhythm = extract_actual_rhythm(sheet_music, bpm)
+    incorrect, sr = librosa.load( "./Testing Data/User Ex1 - 80bpm incorrect1.wav", sr=None)
+    #print(actual_rhythm)
+    incorrect_rhythm = extract_user_rhythm(incorrect, sr)
+    #print(incorrect_rhythm)
+    rhythm_score, rhythm_errors = compare_rhythm(user_rhythm, incorrect_rhythm, rhythm_leniency)
+
+    print("\n\n------------ Results ------------")
+    print("\nIncorrect length: " + str(incorrect_rhythm.size))
+    print("Correct length: " + str(user_rhythm.size))
+    print("Rhythm Score: " + str(rhythm_score))
+    print("Number of errors: " + str(len(rhythm_errors)))
+
+
+    #test_score, test_errors = algoRhythm(audio_path, sheet_music, bpm, rhythm_leniency)
+
+
+def test2():
+    path = './Testing Data/'
+    correct = '/User Ex1 - 80bpm correct.wav'
+    incorrect = '/User Ex1 - 80bpm incorrect1.wav'
+    signal, sr = librosa.load(path + correct)
+    actual_signal, sr = librosa.load(path + incorrect)
+    bpm = 80
+    user_rhythm = extract_user_rhythm(signal, sr)
+    actual_rhythm = extract_user_rhythm(actual_signal, sr)
+
+    # Compare user rhythm with correct rhythm
+    rhythm_leniency = .05
+    rhythm_score, rhythm_errors = compare_rhythm(user_rhythm, actual_rhythm, rhythm_leniency)
+    score, error_margins, error_timestamps = compare_onsets(signal, actual_signal, rhythm_leniency)
+    print('Error margins per onset:', error_margins)
+    print('Score:', rhythm_score)
+    print('Timesteps of Errors:', rhythm_errors)
+
+    # Plot user rhythm against correct rhythm over time
+    plot_bpm_over_time(signal, actual_signal, sr)
+
+    # Plot onsets of user signal against the correct beat placements
+    user_bpm, target_bpm = plot_performance(signal, actual_signal, sr)
+    print('User BPM:', round(user_bpm, 1))
+    print('Target BPM:', round(target_bpm, 1))
+
+
+### Run tests ###
+
+test2()
