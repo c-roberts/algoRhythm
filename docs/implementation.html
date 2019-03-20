@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<title>About</title>
+<title>Implementation</title>
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="description" content="Music template project">
@@ -35,8 +35,8 @@
 					<nav class="main_nav">
 						<ul class="d-flex flex-row align-items-center justify-content-start">
 							<li><a href="index.html">Home</a></li>
-							<li><a style="color: #2ac275;" href="about.html">About</a></li>
-							<li><a href="Implementation.html">Implementation</a></li>
+							<li><a href="about.html">About</a></li>
+							<li><a style="color: #2ac275;" href="Implementation.html">Implementation</a></li>
 							<li><a href="https://github.com/c-roberts/algoRhythm/">Github</a></li>
 							<li><a href="contact.html">Contact</a></li>
 						</ul>
@@ -58,9 +58,9 @@
 					<nav class="menu_nav">
 						<ul class="d-flex flex-column align-items-center justify-content-start">
 							<li><a href="index.html">Home</a></li>
-							<li><a href="artists.html">Artists</a></li>
-							<li><a href="#">Download Music</a></li>
-							<li><a href="blog.html">News</a></li>
+							<li><a href="about.html">About</a></li>
+							<li><a style="color: #2ac275;" href="Implementation.html">Implementation</a></li>
+							<li><a href="https://github.com/c-roberts/algoRhythm/">Github</a></li>
 							<li><a href="contact.html">Contact</a></li>
 						</ul>
 					</nav>
@@ -79,7 +79,7 @@
 				<div class="row">
 					<div class="col">
 						<div class="home_content text-center">
-							<div class="home_title">About</div>
+							<div class="home_title">Implementation</div>
 						</div>
 					</div>
 				</div>
@@ -92,19 +92,42 @@
 	<div class="elements">
 		<div class="container">
 			<div id="text-area">
-				<p>
-				<b>Rhythm</b> an objective element of music and is essential to any great musical performance. 
-				It is a skill that a developing musician will focus on as they improve their skills. Private lessons—while 
-				immensely beneficial to student musicians—can be quite expensive. Tools such as this can increase equity for music 
-				instruction, offering additional evaluational tools to students outside of often pricey private instruction.</p><br>
-				<h3>How it Works</h3>
-				<p>
-				The user provides the system with a .wav file of their performance, tempo, XML reference sheet music, and a leniency value. 
-				The system extracts timesteps of onsets from both the user's performance and the reference sheet music. The two The system outputs an 
-				accuracy grade and timestamps of mistakes in the user’s performance. When creating an accuracy evaluation, a leniency is be used. 
-				If the onset is within the leniency range, the onset is considered correct. The final evaluation is the fraction of correct notes 
-				over total notes.
-			</p>
+				<h3>Dependencies</h3>
+				<div class="dep"><ul style="padding-left:15px;">
+					<li><a href="https://www.python.org/downloads/release/python-371/">Python 3.5+</a></li>
+					<li><a href="http://www.numpy.org/">Numpy</a></li>
+					<li><a href="https://librosa.github.io/librosa/">Librosa</a></li>
+					<li><a href="https://www.scipy.org/">Scipy</a></li>
+					<li><a href="https://pypi.org/project/python-ly/"> Lilypond</a></li>
+
+				</ul></div><br>
+				<h3>Backend</h3>
+					<p>
+						<img style="display:block;margin:auto;" id="flow" src="images/flow.png" alt="Control flow for algoRhythm" width="800" height="170">
+						<br>The user inputs an XML score and their performance of it.<br>
+						The score is converted to the Lilypond format, which is easily parsable as text. The duration of notes is read, and the 
+						timesteps of the onsets are then derived based on the user's tempo and outputted into a Numpy arrray. The onsets of the 
+						user's performance are obtained using Librosa's <a href="https://librosa.github.io/librosa/generated/librosa.onset.onset_detect.html">
+						onset detection</a> module.<br>
+
+						...
+					</p><br>
+
+				<h3>Interface</h3>
+					<p>
+						<img style="display:block;margin:auto;padding-bottom:40px;" src="images/interface1.png" alt="Control flow for algoRhythm" width="800" height="400">
+						<img style="display:block;margin:auto;" src="images/interface2.png" alt="Control flow for algoRhythm" width="800" height="400">
+					</p>
+				<h3>Dataset</h3>
+					<p>
+						We used a researcher-generated dataset to test our system, consisting of
+						XML scores, MIDI piano WAVs, and human performances of our scores at varying levels
+						of correctness. You can access our testing set <a href="https://github.com/c-roberts/algoRhythm/tree/master/Testing%20Data">here</a>.
+					</p>
+				<h3>Related Research</h3>
+					<p>
+
+					</p>
 			</div>
 
 		</div>
