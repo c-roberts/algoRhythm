@@ -16,27 +16,27 @@ def algoRhythm(file, user_signal, bpm, leniency):
         user_signal: name of .wav file in Testing_Data directory of user performance
         BPM: beats per minute the rhythmic accuracy will be evaluated at
         leniency: integer 1-5 for how strict the accuracy guideline will be
-        
+
     OUTPUTS:
         score: float between 0-100 of users accuracy
-        
-        
+
+
     '''
     xml_file = file+ ".xml"
     ly_file = file+".ly"
-    
+
     #convert .xml file to .ly
     xml_to_ly(xml_file, p = False)
-    
+
     #extract text from .ly file
     data = ly_to_text(ly_file)
-    
+
     #extract truth onsets from .ly file
     true_onsets = ly_onsets(80, data)
 
     #extract user onsets from .wav file
     user_onsets = extract_user_rhythm(user_signal)
-       
+
     #convert leniency value to note corresponding note duration
     l_note = None
     if(leniency < 1  or leniency > 5):
@@ -52,17 +52,17 @@ def algoRhythm(file, user_signal, bpm, leniency):
             l_note = 32
         else:
             l_note = 16
-    
-    
+
+
     #compare rhythms of onsets and get errors
     score, error_margins, error_timestamps, error_types = compare_onsets(user_onsets,true_onsets,l_note,bpm)
-    
+
 
     #markup .ly file with mistakes
-    ly_markup(error_margins, error_timestamps, error_types, file, user_signal, bpm) 
-    
+    ly_markup(error_margins, error_timestamps, error_types, file, user_signal, bpm)
+
     return score
-    
+
 
 
 ### Plotting functions ###
@@ -138,7 +138,7 @@ def extract_user_rhythm(signal):
     signal , sr = librosa.core.load(signal)
     signal = librosa.util.normalize(signal, norm=2)
     rhythm_arr = librosa.onset.onset_detect(signal, sr=standard_sr,units='time')
-    
+
     return rhythm_arr
 
 
@@ -173,7 +173,7 @@ def extract_actual_rhythm(bpm,data):
 
 def xml_to_ly(filepath, p = False):
     '''
-    INPUTS: 
+    INPUTS:
         filepath: location of xml file
         p: bool to print cmd response
     '''
@@ -188,7 +188,7 @@ def xml_to_ly(filepath, p = False):
 
 def ly_to_text(filepath):
     '''
-    INPUTS:    
+    INPUTS:
         filepath: string to file path of .ly file
     -----------------------------------------
     RETURNS:
@@ -213,7 +213,7 @@ def parse_PPOVO(bpm, PPOVO):
     onset_times = []
     prev = None
     i = 0
-    is_tuple = False    
+    is_tuple = False
     tuple_fraction = 1
     #parse through PPOVO section
     while i < len(PPOVO)-2:
@@ -221,7 +221,7 @@ def parse_PPOVO(bpm, PPOVO):
         c = PPOVO[i]
         c_next = PPOVO[i+1]
         c_next_dig = c_next.isdigit()
-        
+
         if(c == "\\"): #check for override
             i+=1
             tuplecheck = PPOVO.find("override TupletBracket",i) #check for tuple override
@@ -231,13 +231,13 @@ def parse_PPOVO(bpm, PPOVO):
                 n_buffer = ""
                 d_buffer = ""
                 c = PPOVO[i]
-                
+
                 while c != "/": #get ft numerator
                     if(c.isdigit()):
                         n_buffer += c
                     i +=1
-                    c = PPOVO[i]                  
-                
+                    c = PPOVO[i]
+
                 while c != " ": #get ft denominator
                     if(c.isdigit()):
                         d_buffer += c
@@ -245,17 +245,17 @@ def parse_PPOVO(bpm, PPOVO):
                     c = PPOVO[i]
                 tuple_fraction = float(n_buffer)/float(d_buffer)
                 is_tuple = True
-                
+
         elif(is_tuple and c == "}"): #check for end of tuple overide, reset values
             is_tuple = False
             tuple_fraction = 1
-            
-        elif(c == "'" or (c == "r" and c_next_dig)): #note or rest found    
+
+        elif(c == "'" or (c == "r" and c_next_dig)): #note or rest found
             #add note onset
             t = None
             if(c == "'"):
                 t = "note"
-                onset_times.append(time)               
+                onset_times.append(time)
                 #parse through note length indicator
                 while(c == "'"):
                     i += 1
@@ -264,7 +264,7 @@ def parse_PPOVO(bpm, PPOVO):
                 t = "rest"
                 i+=1
                 c = PPOVO[i]
-                
+
             #buffer to get note/rest value
             buffer = ""
             #keep going until total note len is found (1,2,4,8th,16th,32th note etc)
@@ -272,35 +272,35 @@ def parse_PPOVO(bpm, PPOVO):
                 buffer+=c
                 i+=1
                 c = PPOVO[i]
-                
+
             if(c == "."): #dotted note
                 tuple_fraction = 1.5
-                
+
             #convert buffer to int to get note type
             if(buffer != ""):
                 note_val = int(buffer)
                 duration = note_to_seconds(bpm, note_val,tf=tuple_fraction)
                 time+=duration
-                
+
             if(c == "."): #dotted note
                 tuple_fraction = 1.0
 #             print("buffer:",buffer)
 #             print("Type:",t,"Length:",note_val,"Duration:",duration)
         i+=1
-            
+
     return onset_times
-            
+
 
 def note_to_seconds(bpm, note_val,tf=1.0):
     '''
-    INPUTS: 
+    INPUTS:
         beats per minute integer
-        note_val: type of note in float 
+        note_val: type of note in float
             1.0 = whole note
             0.5 = half note
             etc...
         tf: tuple fraction indicated in ly file
-        
+
     -------------------------------
     RETURNS:
         duration: note duration in seconds
@@ -341,11 +341,11 @@ def search_onsets(onsets, lo, hi):
 
 def compare_onsets(user_onsets, actual_onsets, leniency_len, bpm):
     '''
-    Inputs: 
+    Inputs:
         user_onset: array of user onset in seconds
         actual_signal: array of user onsets in seconds
         leniency_len: note value for error window
-        BPM: BPM of ground truth 
+        BPM: BPM of ground truth
     Outputs: evaluation score based on number of correctly placed onsets,
              error of user onset in seconds,
              timesteps of user onset errors
@@ -354,7 +354,7 @@ def compare_onsets(user_onsets, actual_onsets, leniency_len, bpm):
     error_timestamps = []
     error_types = []
     score = None
-    
+
     #no onsets case
     if len(user_onsets) == 0:
         score = 0
@@ -362,13 +362,13 @@ def compare_onsets(user_onsets, actual_onsets, leniency_len, bpm):
         for i in range(0,len(actual_onsets)):
             error_types.append("Missing Note")
         return score, error_margins, error_timestamps , error_types
-        
-    
+
+
     #convert leniency_len to time
     l2 = leniency_len/2
     l1 = note_to_seconds(bpm, leniency_len)
     l2 = note_to_seconds(bpm,l2)
-    
+
     # align first onset to time 0
     user_onsets = np.subtract(user_onsets, user_onsets[0])
     actual_onsets = np.subtract(actual_onsets, actual_onsets[0])
@@ -402,8 +402,8 @@ def compare_onsets(user_onsets, actual_onsets, leniency_len, bpm):
                     error_types.append("Extra Note")
             else:
                 error_types.append("Missing Note")
-                
-                
+
+
             last_ind = ind
 
     score = 100 - (len(error_timestamps) / actual_onsets.size) * 100
@@ -419,38 +419,38 @@ def ly_markup(error_margins, error_timestamps, error_types, filename, output_nam
     #create new txt file for markup
     filename = output_name+"_markup.ly"
     markup = open(filename,"w+")
-    
+
     #skip header information
-    start = data.find('PartPOneVoiceOne') 
-    
+    start = data.find('PartPOneVoiceOne')
+
     #improper file type
     if start == -1:
         raise ValueError('Improper File Format. File is not Monophonic')
-        
+
     #adjust start to begin at PPOVO node
     start +=  16
     while data[start] != '{':
         start += 1
-    
-   
+
+
     #PPOVO data section
     PPOVO = data[start:(len(data)-1)]
     header = data[:start]
-    
-    
+
+
     #PPOVO parsing information
     time = 0.0
     prev = None
     i = 0
-    is_tuple = False    
+    is_tuple = False
     tuple_fraction = 1
-    
+
     #error tracking information
     j = 0
     errors = True
     if len(error_types) == 0:
         errors = False
-        
+
     #parse through PPOVO section if errors exist
     if errors:
         while i < len(PPOVO)-2:
@@ -476,7 +476,7 @@ def ly_markup(error_margins, error_timestamps, error_types, filename, output_nam
                         if(c.isdigit()):
                             n_buffer += c
                         i +=1
-                        c = PPOVO[i]                  
+                        c = PPOVO[i]
 
                     while c != " ": #get ft denominator
                         if(c.isdigit()):
@@ -490,14 +490,14 @@ def ly_markup(error_margins, error_timestamps, error_types, filename, output_nam
             elif(is_tuple and c == "}"): #check for end of tuple overide, reset values
                 is_tuple = False
                 tuple_fraction = 1
-                
+
             c = PPOVO[i]
             if(c == "'" or (c == "r" and c_next_dig)): #note or rest found
-                
+
                 #add note onset
                 t = None
                 if(c == "'"):
-                    t = "note"             
+                    t = "note"
                     #parse through note length indicator
                     while(c == "'"):
                         i += 1
@@ -506,10 +506,10 @@ def ly_markup(error_margins, error_timestamps, error_types, filename, output_nam
                     t = "rest"
                     i+=1
                     c = PPOVO[i]
-                    
+
                 #buffer to get note/rest value
                 buffer = ""
-                
+
                 #keep going until total note len is found (1,2,4,8th,16th,32th note etc)
                 while (c.isdigit()):
                     buffer+=c
@@ -519,15 +519,15 @@ def ly_markup(error_margins, error_timestamps, error_types, filename, output_nam
                 if(c == "."): #dotted note
                     tuple_fraction = 1.5
 
-                #convert buffer to int to get note type        
+                #convert buffer to int to get note type
                 if(buffer != ""):
                     note_val = int(buffer)
                     duration = note_to_seconds(bpm, note_val,tf=tuple_fraction)
-                    
+
                     #error marking
                     error_time = float('inf')
                     if j < len(error_timestamps):
-                        error_time = error_timestamps[j] 
+                        error_time = error_timestamps[j]
 
 
                     while error_time <= time and j < len(error_timestamps):
@@ -537,15 +537,15 @@ def ly_markup(error_margins, error_timestamps, error_types, filename, output_nam
                         j+=1
                         if j < len(error_timestamps):
                             error_time = error_timestamps[j]
-                    
-                    
+
+
                     time+=duration
-                        
+
 
 
                 if(c == "."): #dotted note post correction
                     tuple_fraction = 1.0
-                    
+
             i+=1
     data = header + PPOVO
     markup.write(data)
