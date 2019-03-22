@@ -164,7 +164,7 @@ leniency_lab = Label(in_frame, text="Leniency: ", font=('Sans','13'))
 leniency_lab.grid(row=4, column=0, padx=35, pady=10, sticky=SE)
 
 leniency = IntVar()
-leniency_scale = Scale(in_frame, var=leniency, from_=1, to=10, orient=HORIZONTAL, width=15, length=170)
+leniency_scale = Scale(in_frame, var=leniency, from_=1, to=5, orient=HORIZONTAL, width=15, length=170)
 leniency_scale.grid(row=4, column=1, pady=10, sticky=SW)
 
 # BPM Input #############

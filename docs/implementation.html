@@ -117,7 +117,9 @@
 
 						<p>As a perfect performance is humanly impossible, we use a leniency value to allow for some amount of error tolerance; this is scalable by
 						the user to control for differing skills levels. If the user's onset is outside of the tolerance, it is marked as incorrect, and the 
-						timestep and index are recorded. A final accuract score is calculated at the end given by the ratio of correct notes over the total notes.
+						timestep and index are recorded. A marking is also made on the sheet music that was inputted detailing the type of mistake that was made.
+						A final accuracy score is calculated at the end given by the ratio of correct notes over the total notes. This is displayed on the interface,
+						and the marked up sheet music is outputted.
 					</p><br>
 
 				<h3>Interface</h3>
@@ -125,6 +127,131 @@
 						<img style="display:block;margin:auto;padding-bottom:40px;" src="images/interface1.png" alt="Control flow for algoRhythm" width="800" height="400">
 						<img style="display:block;margin:auto;" src="images/interface2.png" alt="Control flow for algoRhythm" width="800" height="400"><br>
 					</p>
+				
+
+
+					<!-- Song -->
+					<div class="song">
+
+						<!-- Player -->
+						<div class="single_player_container">
+							<div class="single_player">
+								<div class="jp-jplayer jplayer" data-title="User Example 1 (Correct)"  data-ancestor=".jp_container_1" data-url="files/User Ex correct.wav"></div>
+								<div class="jp-audio jp_container_1" role="application" aria-label="media player">
+									<div class="jp-gui jp-interface single_player_inner d-flex flex-row align-items-center justify-content-start">
+
+										<!-- Player Controls -->
+										<div class="player_controls_box">
+											<div class="jp-controls-holder player_controls d-flex flex-row align-items-start justify-content-start">
+												<button class="jp-play player_button" tabindex="0"></button>
+												<button class="jp-stop player_button" tabindex="0"></button>
+											</div>
+										</div>
+
+										<!-- Progress Bar -->
+										<div class="player_bars d-flex flex-row align-items-start justify-content-start">
+											<div class="player_progress_box">
+												<div class="jp-current-time" role="timer" aria-label="time">00:00</div>
+												<div class="song_info">
+													<div class="jp-title" aria-label="title"></div>
+												</div>
+												<div class="jp-progress">
+													<div class="jp-seek-bar">
+														<div>
+															<div class="jp-play-bar"><span></span></div>
+														</div>
+													</div>
+												</div>
+												<div class="jp-duration ml-auto" role="timer" aria-label="duration">00:00</div>
+											</div>
+
+											<!-- Volume Controls -->
+											<div class="jp-volume-controls ml-auto">
+												<div class="mute_button">
+													<button class="jp-mute" tabindex="0"></button>
+												</div>
+												<div class="d-flex flex-row align-items-center justify-content-start">
+													<div class="jp-volume-bar">
+														<div>
+															<div class="jp-volume-bar-value"></div>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+										
+									</div>
+									<div class="jp-no-solution">
+										<span>Update Required</span>
+										To play the media you will need to either update your browser to a recent version or update your <a href="http://get.adobe.com/flashplayer/" target="_blank">Flash plugin</a>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Song -->
+					<div class="song">
+
+						<!-- Player -->
+						<div class="single_player_container">
+							<div class="single_player">
+								<div class="jp-jplayer jplayer" data-title="User Example 2 (Incorrect)"  data-ancestor=".jp_container_2" data-url="files/User Ex incorrect.wav"></div>
+								<div class="jp-audio jp_container_2" role="application" aria-label="media player">
+									<div class="jp-gui jp-interface single_player_inner d-flex flex-row align-items-center justify-content-start">
+
+										<!-- Player Controls -->
+										<div class="player_controls_box">
+											<div class="jp-controls-holder player_controls d-flex flex-row align-items-start justify-content-start">
+												<button class="jp-play player_button" tabindex="0"></button>
+												<button class="jp-stop player_button" tabindex="0"></button>
+											</div>
+										</div>
+
+										<!-- Progress Bar -->
+										<div class="player_bars d-flex flex-row align-items-start justify-content-start">
+											<div class="player_progress_box">
+												<div class="jp-current-time" role="timer" aria-label="time">00:00</div>
+												<div class="song_info">
+													<div class="jp-title" aria-label="title"></div>
+												</div>
+												<div class="jp-progress">
+													<div class="jp-seek-bar">
+														<div>
+															<div class="jp-play-bar"><span></span></div>
+														</div>
+													</div>
+												</div>
+												<div class="jp-duration ml-auto" role="timer" aria-label="duration">00:00</div>
+											</div>
+
+											<!-- Volume Controls -->
+											<div class="jp-volume-controls ml-auto">
+												<div class="mute_button">
+													<button class="jp-mute" tabindex="0"></button>
+												</div>
+												<div class="d-flex flex-row align-items-center justify-content-start">
+													<div class="jp-volume-bar">
+														<div>
+															<div class="jp-volume-bar-value"></div>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+										
+									</div>
+									<div class="jp-no-solution">
+										<span>Update Required</span>
+										To play the media you will need to either update your browser to a recent version or update your <a href="http://get.adobe.com/flashplayer/" target="_blank">Flash plugin</a>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+
+
 				<h3>Dataset</h3>
 					<p>
 						We used a researcher-generated dataset to test our system, consisting of
