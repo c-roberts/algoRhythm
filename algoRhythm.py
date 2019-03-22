@@ -25,9 +25,8 @@ def algoRhythm(sheet_file, user_signal, bpm, leniency, out):
     #xml_file = file
     if ".xml" in sheet_file:
         xml_to_ly(sheet_file, p = False)
-
-    ly_filepath = sheet_file
-    ly_file = user_signal
+    else:
+        ly_filepath = sheet_file
 
     #convert .xml file to .ly
     #xml_to_ly(xml_file, p = False)
@@ -164,14 +163,21 @@ def xml_to_ly(filepath, p = False):
         filepath: location of xml file
         p: bool to print cmd response
     '''
-    cmd = 'musicxml2ly -a '+filepath
+
+
+    cmd = 'musicxml2ly -a '+ filepath
     returned_value = os.system(cmd)
+    #myly=musicxml2ly.convert(filepath)
+    
     print(returned_value)
     print(cmd)
     if returned_value != 0:
         raise ValueError('File Not Found')
     if p ==  True:
         print('returned value:', returned_value)
+    
+    #return myly
+    
 
 
 
@@ -555,7 +561,7 @@ def ly_markup(error_margins, error_timestamps, error_types, filename, output_nam
 def test1():
 
     audio_path = "./Testing Data/User Ex1 - 80bpm correct.wav"
-    sheet_music = "./Testing Data/User Ex1 score.xml"
+    sheet_music = "./Testing Data/Ex1.xml"
     bpm=80
     rhythm_leniency = 1
 

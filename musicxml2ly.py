@@ -106,7 +106,7 @@ def extract_paper_information (tree):
         return None
 
     def from_tenths (txt):
-        return round_to_two_digits (string.atof (txt) * tenths / 10)
+        return round_to_two_digits (float (txt) * tenths / 10)
     def set_paper_variable (varname, parent, element_name):
         el = parent.get_maybe_exist_named_child (element_name)
         if el: # Convert to cm from tenths
@@ -245,7 +245,7 @@ def extract_score_information (tree):
             app_description = ignore_beaming_software.get (s, False);
             if app_description:
                 conversion_settings.ignore_beaming = True
-                lilylib.warning (_ ("Encountered file created by %s, containing "
+                lilylib.warning (("Encountered file created by %s, containing "
                                "wrong beaming information. All beaming "
                                "information in the MusicXML file will be "
                                "ignored") % app_description)
@@ -264,9 +264,9 @@ class PartGroupInfo:
     def add_end (self, g):
         self.end[getattr (g, 'number', "1")] = g
     def print_ly (self, printer):
-        lilylib.warning (_ ("Unprocessed PartGroupInfo %s encountered") % self)
+        lilylib.warning (("Unprocessed PartGroupInfo %s encountered") % self)
     def ly_expression (self):
-        lilylib.warning (_ ("Unprocessed PartGroupInfo %s encountered") % self)
+        lilylib.warning (("Unprocessed PartGroupInfo %s encountered") % self)
         return ''
 
 def musicxml_step_to_lily (step):
@@ -283,7 +283,7 @@ def staff_attributes_to_string_tunings (mxl_attr):
     lines = 6
     staff_lines = details.get_maybe_exist_named_child ('staff-lines')
     if staff_lines:
-        lines = string.atoi (staff_lines.get_text ())
+        lines = int (staff_lines.get_text ())
 
     tunings = [musicexp.Pitch()] * lines
     staff_tunings = details.get_named_children ('staff-tuning')
@@ -291,7 +291,7 @@ def staff_attributes_to_string_tunings (mxl_attr):
         p = musicexp.Pitch()
         line = 0
         try:
-            line = string.atoi (i.line) - 1
+            line = int (i.line) - 1
         except ValueError:
             pass
         tunings[line] = p
@@ -333,7 +333,7 @@ def staff_attributes_to_lily_staff (mxl_attr):
     for d in details:
         staff_lines = d.get_maybe_exist_named_child ('staff-lines')
         if staff_lines:
-            lines = string.atoi (staff_lines.get_text ())
+            lines = int (staff_lines.get_text ())
 
     # TODO: Handle other staff attributes like staff-space, etc.
 
@@ -456,7 +456,7 @@ def extract_score_structure (part_list, staffinfo):
                 grpid = None
                 intersection = filter(lambda x:x in ends, prev_started)
                 if len (intersection) > 0:
-                    grpid = intersection[0]
+                    grpid = intersection
                 else:
                     # Close the last started group
                     grpid = staves[prev_start].start.keys () [0]
@@ -517,7 +517,7 @@ def musicxml_duration_to_lily (mxl_note):
         if mxl_note._duration > 0:
             return rational_to_lily_duration (mxl_note._duration)
         else:
-            mxl_note.message (_ ("Encountered note at %s without type and duration (=%s)") % (mxl_note.start, mxl_note._duration) )
+            mxl_note.message (("Encountered note at %s without type and duration (=%s)") % (mxl_note.start, mxl_note._duration) )
             return None
 
 
@@ -537,7 +537,7 @@ def rational_to_lily_duration (rational_len):
         d.duration_log = d_log
         d.factor = Rational (rational_len.numerator ())
     else:
-        lilylib.warning (_ ("Encountered rational duration with denominator %s, "
+        lilylib.warning (("Encountered rational duration with denominator %s, "
                        "unable to convert to lilypond duration") %
                     rational_len.denominator ())
         # TODO: Test the above error message
@@ -784,7 +784,7 @@ def musicxml_time_to_lily (attributes):
 def musicxml_key_to_lily (attributes):
     key_sig = attributes.get_key_signature ()
     if not key_sig or not (isinstance (key_sig, list) or isinstance (key_sig, tuple)):
-        lilylib.warning (_ ("Unable to extract key signature!"))
+        lilylib.warning (("Unable to extract key signature!"))
         return None
 
     change = musicexp.KeySignatureChange()
@@ -811,7 +811,7 @@ def musicxml_key_to_lily (attributes):
             start_pitch.step = n
             start_pitch.alteration = a
         except  KeyError:
-            lilylib.warning (_ ("unknown mode %s, expecting 'major' or 'minor' "
+            lilylib.warning (("unknown mode %s, expecting 'major' or 'minor' "
                 "or a church mode!") % mode)
 
         fifth = musicexp.Pitch()
@@ -842,8 +842,8 @@ def musicxml_transpose_to_lily (attributes):
     shift = musicexp.Pitch ()
     octave_change = transpose.get_maybe_exist_named_child ('octave-change')
     if octave_change:
-        shift.octave = string.atoi (octave_change.get_text ())
-    chromatic_shift = string.atoi (transpose.get_named_child ('chromatic').get_text ())
+        shift.octave = int (octave_change.get_text ())
+    chromatic_shift = int (transpose.get_named_child ('chromatic').get_text ())
     chromatic_shift_normalized = chromatic_shift % 12;
     (shift.step, shift.alteration) = [
         (0, 0), (0, 1), (1, 0), (2, -1), (2, 0),
@@ -854,7 +854,7 @@ def musicxml_transpose_to_lily (attributes):
 
     diatonic = transpose.get_maybe_exist_named_child ('diatonic')
     if diatonic:
-        diatonic_step = string.atoi (diatonic.get_text ()) % 7
+        diatonic_step = int (diatonic.get_text ()) % 7
         if diatonic_step != shift.step:
             # We got the alter incorrect!
             old_semitones = shift.semitones ()
@@ -876,7 +876,7 @@ def musicxml_staff_details_to_lily (attributes):
 
     stafflines = details.get_maybe_exist_named_child ('staff-lines')
     if stafflines:
-        lines = string.atoi (stafflines.get_text ());
+        lines = int (stafflines.get_text ());
         lines_event = musicexp.StaffLinesEvent (lines);
         ret.append (lines_event);
 
@@ -1043,7 +1043,7 @@ def musicxml_spanner_to_lily_event (mxl_event):
     if func:
         ev = func()
     else:
-        lilylib.warning (_ ('unknown span event %s') % mxl_event)
+        lilylib.warning (('unknown span event %s') % mxl_event)
 
 
     type = mxl_event.get_type ()
@@ -1053,7 +1053,7 @@ def musicxml_spanner_to_lily_event (mxl_event):
     if span_direction != None:
         ev.span_direction = span_direction
     else:
-        lilylib.warning (_ ('unknown span type %s for %s') % (type, name))
+        lilylib.warning (('unknown span type %s for %s') % (type, name))
 
     ev.set_span_type (type)
     ev.line_type = getattr (mxl_event, 'line-type', 'solid')
@@ -1250,7 +1250,7 @@ def musicxml_dynamics_to_lily_event (dynentry):
     if not dynamicsname in dynamics_available:
         # Get rid of - in tag names (illegal in ly tags!)
         dynamicstext = dynamicsname
-        dynamicsname = string.replace (dynamicsname, "-", "")
+        dynamicsname = str.replace (dynamicsname, "-", "")
         additional_definitions[dynamicsname] = dynamicsname + \
               " = #(make-dynamic-script \"" + dynamicstext + "\")"
         needed_additional_definitions.append (dynamicsname)
@@ -1285,7 +1285,7 @@ def musicxml_words_to_lily_event (words):
     if hasattr (words, 'default-y') and options.convert_directions:
         offset = getattr (words, 'default-y')
         try:
-            off = string.atoi (offset)
+            off = int (offset)
             if off > 0:
                 event.force_direction = 1
             else:
@@ -1352,7 +1352,7 @@ def musicxml_accordion_to_markup (mxl_event):
         # MusicXML spec is quiet about this case...
         txt = 1
         try:
-          txt = string.atoi (middle.get_text ())
+          txt = int (middle.get_text ())
         except ValueError:
             pass
         if txt == 3:
@@ -1473,12 +1473,12 @@ def musicxml_metronome_to_ly (mxl_event):
             except ValueError:
                 pass
         else:
-            lilylib.warning (_ ("Unknown metronome mark, ignoring"))
+            lilylib.warning (("Unknown metronome mark, ignoring"))
             return
         return ev
     else:
         #TODO: Implement the other (more complex) way for tempo marks!
-        lilylib.warning (_ ("Metronome marks with complex relations (<metronome-note> in MusicXML) are not yet implemented."))
+        lilylib.warning (("Metronome marks with complex relations (<metronome-note> in MusicXML) are not yet implemented."))
         return
 
 # translate directions into Events, possible values:
@@ -1680,7 +1680,7 @@ def musicxml_chordkind_to_lily (kind):
     res = chordkind_dict.get (kind, None)
     # Check for None, since a major chord is converted to ''
     if res == None:
-        lilylib.warning (_ ("Unable to convert chord type %s to lilypond.") % kind)
+        lilylib.warning (("Unable to convert chord type %s to lilypond.") % kind)
     return res
 
 def musicxml_harmony_to_lily_chordname (n):
@@ -1709,7 +1709,7 @@ def musicxml_harmony_to_lily_chordname (n):
             # require you to know the chord and calculate either the fifth
             # pitch (for the first inversion) or the third pitch (for the
             # second inversion) so they may not be helpful for musicxml2lilylib.
-            inversion_count = string.atoi (inversion.get_text ())
+            inversion_count = int (inversion.get_text ())
             if inversion_count == 1:
               # TODO: Calculate the bass note for the inversion...
               pass
@@ -1833,11 +1833,11 @@ def musicxml_note_to_lily_main_event (n):
         if drum_type:
             event.drum_type = drum_type
         else:
-            n.message (_ ("drum %s type unknown, please add to instrument_drumtype_dict") % n.instrument_name)
+            n.message (("drum %s type unknown, please add to instrument_drumtype_dict") % n.instrument_name)
             event.drum_type = 'acousticsnare'
 
     else:
-        n.message (_ ("cannot find suitable event"))
+        n.message (("cannot find suitable event"))
 
     if event:
         event.duration = musicxml_duration_to_lily (n)
@@ -1985,7 +1985,7 @@ class LilyPondVoiceBuilder:
         diff = moment - current_end
 
         if diff < Rational (0):
-            lilylib.warning (_ ('Negative skip %s (from position %s to %s)')
+            lilylib.warning (('Negative skip %s (from position %s to %s)')
                 % (diff, current_end, moment))
             diff = Rational (0)
 
@@ -2126,7 +2126,7 @@ def musicxml_voice_to_lily_voice (voice):
                 voice_builder.correct_negative_skip (n._when)
                 figured_bass_builder.correct_negative_skip (n._when)
                 chordnames_builder.correct_negative_skip (n._when)
-                n.message (_ ("Negative skip found: from %s to %s, difference is %s") % (neg.here, neg.dest, neg.dest - neg.here))
+                n.message (("Negative skip found: from %s to %s, difference is %s") % (neg.here, neg.dest, neg.dest - neg.here))
 
         if isinstance (n, musicxml.Barline):
             barlines = musicxml_barline_to_lily (n)
@@ -2207,7 +2207,7 @@ def musicxml_voice_to_lily_voice (voice):
             continue
 
         if not n.__class__.__name__ == 'Note':
-            n.message (_ ('unexpected %s; expected %s or %s or %s') % (n, 'Note', 'Attributes', 'Barline'))
+            n.message (('unexpected %s; expected %s or %s or %s') % (n, 'Note', 'Attributes', 'Barline'))
             continue
 
         main_event = musicxml_note_to_lily_main_event (n)
@@ -2313,10 +2313,10 @@ def musicxml_voice_to_lily_voice (voice):
             endslurs = [s for s in notations.get_named_children ('slur')
                 if s.get_type () in ('stop')]
             if endslurs and not inside_slur:
-                endslurs[0].message (_ ('Encountered closing slur, but no slur is open'))
+                endslurs[0].message (('Encountered closing slur, but no slur is open'))
             elif endslurs:
                 if len (endslurs) > 1:
-                    endslurs[0].message (_ ('Cannot have two simultaneous (closing) slurs'))
+                    endslurs[0].message (('Cannot have two simultaneous (closing) slurs'))
                 # record the slur status for the next note in the loop
                 inside_slur = False
                 lily_ev = musicxml_spanner_to_lily_event (endslurs[0])
@@ -2325,10 +2325,10 @@ def musicxml_voice_to_lily_voice (voice):
             startslurs = [s for s in notations.get_named_children ('slur')
                 if s.get_type () in ('start')]
             if startslurs and inside_slur:
-                startslurs[0].message (_ ('Cannot have a slur inside another slur'))
+                startslurs[0].message (('Cannot have a slur inside another slur'))
             elif startslurs:
                 if len (startslurs) > 1:
-                    startslurs[0].message (_ ('Cannot have two simultaneous slurs'))
+                    startslurs[0].message (('Cannot have two simultaneous slurs'))
                 # record the slur status for the next note in the loop
                 inside_slur = True
                 lily_ev = musicxml_spanner_to_lily_event (startslurs[0])
@@ -2462,7 +2462,7 @@ def musicxml_voice_to_lily_voice (voice):
 
 
     if len (modes_found) > 1:
-       lilylib.warning (_ ('cannot simultaneously have more than one mode: %s') % modes_found.keys ())
+       lilylib.warning (('cannot simultaneously have more than one mode: %s') % modes_found.keys ())
 
     if options.relative:
         v = musicexp.RelativeMusic ()
@@ -2570,7 +2570,7 @@ def get_all_voices (parts):
 
         part_ly_voices = {}
         for n, v in name_voice.items ():
-            lilylib.progress (_ ("Converting to LilyPond expressions..."), True)
+            lilylib.progress (("Converting to LilyPond expressions..."), True)
             # musicxml_voice_to_lily_voice returns (lily_voice, {nr->lyrics, nr->lyrics})
             part_ly_voices[n] = musicxml_voice_to_lily_voice (v)
 
@@ -2771,7 +2771,7 @@ def update_score_setup (score_structure, part_list, voices):
         part_id = part_definition.id
         nv_dict = voices.get (part_id)
         if not nv_dict:
-            lilylib.warning (_ ('unknown part in part-list: %s') % part_id)
+            lilylib.warning (('unknown part in part-list: %s') % part_id)
             continue
 
         staves = reduce (lambda x,y: x+ y,
@@ -2833,7 +2833,7 @@ def read_musicxml (filename, compressed, use_lxml):
     raw_string = None
     if compressed:
         if filename == "-":
-             lilylib.progress (_ ("Input is compressed, extracting raw MusicXML data from stdin"), True)
+             lilylib.progress (("Input is compressed, extracting raw MusicXML data from stdin"), True)
              # unfortunately, zipfile.ZipFile can't read directly from
              # stdin, so copy everything from stdin to a temp file and read
              # that. TemporaryFile() will remove the file when it is closed.
@@ -2846,7 +2846,7 @@ def read_musicxml (filename, compressed, use_lxml):
                  bytes_read = sys.stdin.read (8192)
              z = zipfile.ZipFile (tmp, "r")
         else:
-            lilylib.progress (_ ("Input file %s is compressed, extracting raw MusicXML data") % filename, True)
+            lilylib.progress (("Input file %s is compressed, extracting raw MusicXML data") % filename, True)
             z = zipfile.ZipFile (filename, "r")
         container_xml = z.read ("META-INF/container.xml")
         if not container_xml:
@@ -2879,9 +2879,9 @@ def convert (filename, options):
     opt_parser = option_parser()
 
     if filename == "-":
-        lilylib.progress (_ ("Reading MusicXML from Standard input ..."), True)
+        lilylib.progress (("Reading MusicXML from Standard input ..."), True)
     else:
-        lilylib.progress (_ ("Reading MusicXML from %s ...") % filename, True)
+        lilylib.progress (("Reading MusicXML from %s ...") % filename, True)
 
     tree = read_musicxml (filename, options.compressed, options.use_lxml)
     score_information = extract_score_information (tree)
@@ -2914,9 +2914,9 @@ def convert (filename, options):
     else:
       output_ly_name = options.output_name + '.ly'
 
-    lilylib.progress (_ ("Output to `%s'") % output_ly_name, True)
+    lilylib.progress (("Output to `%s'") % output_ly_name, True)
     printer = musicexp.Output_printer()
-    #lilylib.progress (_ ("Output to `%s'") % defs_ly_name, True)
+    #lilylib.progress (("Output to `%s'") % defs_ly_name, True)
     if (options.output_name == "-"):
       printer.set_file (codecs.getwriter ("utf-8")(sys.stdout))
     else:
@@ -2944,10 +2944,10 @@ def get_existing_filename_with_extension (filename, ext):
         return filename
     newfilename = filename + "." + ext
     if os.path.exists (newfilename):
-        return newfilename;
+        return newfilename
     newfilename = filename + ext
     if os.path.exists (newfilename):
-        return newfilename;
+        return newfilename
     return ''
 
 def main ():
@@ -2984,7 +2984,7 @@ def main ():
     if filename and (filename == "-" or os.path.exists (filename)):
         voices = convert (filename, options)
     else:
-        lilylib.error (_ ("Unable to find input file %s") % basefilename)
+        lilylib.error (("Unable to find input file %s") % basefilename)
 
 if __name__ == '__main__':
     main()

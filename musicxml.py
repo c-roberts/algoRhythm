@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import types
+import types as types
 import string
 from rational import *
 import re
@@ -365,7 +365,7 @@ class Attributes (Measure_element):
                 current_sig = []
                 for i in mxl.get_all_children ():
                     if isinstance (i, Beats):
-                        beats = (i.get_text ().strip(), "+").split()
+                        beats = (i.get_text().strip(), "+")
                         current_sig = [int (j) for j in beats]
                     elif isinstance (i, BeatType):
                         current_sig.append (int (i.get_text ()))
@@ -551,7 +551,7 @@ class Text (Music_xml_node):
 class Lyric (Music_xml_node):
     def get_number (self):
         if hasattr (self, 'number'):
-            return self.number
+            return self
         else:
             return -1
 
@@ -759,7 +759,7 @@ class Part (Music_xml_node):
             previous_measure = m
 
     # modify attributes so that only those applying to the given staff remain
-    def extract_attributes_for_staff (part, attr, staff):
+    def extract_attributes_for_staff (self, part, attr, staff):
         attributes = copy.copy (attr)
         attributes._children = []
         attributes._dict = attr._dict.copy ()
@@ -776,7 +776,7 @@ class Part (Music_xml_node):
         else:
             return attributes
 
-    def extract_voices (part):
+    def extract_voices (self, part):
         voices = {}
         measures = part.get_typed_children (Measure)
         elements = []
@@ -807,10 +807,10 @@ class Part (Music_xml_node):
                 #       If this is changed, need to change the corresponding
                 #       check in extract_attributes_for_staff, too.
                 sid = "None"
-            if vid and not voices.has_key (vid):
+            if vid and not voices in (vid):
                 voices[vid] = Musicxml_voice()
             if vid and sid and not n.get_maybe_exist_typed_child (Grace):
-                if not voice_to_staff_dict.has_key (vid):
+                if not voice_to_staff_dict in (vid):
                     voice_to_staff_dict[vid] = sid
         # invert the voice_to_staff_dict into a staff_to_voice_dict (since we
         # need to assign staff-assigned objects like clefs, times, etc. to
@@ -818,7 +818,7 @@ class Part (Music_xml_node):
         # to staff-switches, but that's the best we can do!
         staff_to_voice_dict = {}
         for (v,s) in voice_to_staff_dict.items ():
-            if not staff_to_voice_dict.has_key (s):
+            if not staff_to_voice_dict in (s):
                 staff_to_voice_dict[s] = [v]
             else:
                 staff_to_voice_dict[s].append (v)
@@ -947,12 +947,12 @@ class Accidental (Music_xml_node):
 class Music_xml_spanner (Music_xml_node):
     def get_type (self):
         if hasattr (self, 'type'):
-            return self.type
+            return type(self)
         else:
             return 0
     def get_size (self):
         if hasattr (self, 'size'):
-            return int(self.size)
+            return int(len(self))
         else:
             return 0
 
@@ -1003,14 +1003,14 @@ class Dashes (Music_xml_spanner):
 
 class Slur (Music_xml_spanner):
     def get_type (self):
-        return self.type
+        return type(self)
 
 class Beam (Music_xml_spanner):
     def get_type (self):
         return self.get_text ()
     def is_primary (self):
         if hasattr (self, 'number'):
-            return self.number == "1"
+            return "1"
         else:
             return True
 
@@ -1030,7 +1030,7 @@ class Octave_shift (Music_xml_spanner):
     # default is 8 for the octave-shift!
     def get_size (self):
         if hasattr (self, 'size'):
-            return int(self.size)
+            return int(len(self))
         else:
             return 8
 
