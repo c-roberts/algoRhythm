@@ -557,4 +557,3 @@ def test2():
 
 ### Run tests ###
 
-test2()

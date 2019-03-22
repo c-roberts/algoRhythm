@@ -44,17 +44,22 @@ def closeProgram():
 
 def submit():
     BPM = tempo.get()
-    if (type(int(BPM)) != int):
+    try:
+        if (type(int(BPM)) != int):
+            progress['text'] = 'Please enter an integer value for tempo.'
+            return
+    except ValueError:
         progress['text'] = 'Please enter an integer value for tempo.'
         return
+
     
-    #rhythm_score, rhythm_errors = algoRhythm.algoRhythm(audio_path, sheet_music, BPM, leniency)
+    rhythm_score, rhythm_errors = algoRhythm.algoRhythm(audio_path, sheet_music, BPM, leniency)
     rhythm_score = 40
     rhythm_errors = [4,5,6,7]
     # display score 
     # change color based on score?
     mistakes = len(rhythm_errors)
-    print(mistakes)
+    #print(mistakes)
 
     score_['text'] = str(rhythm_score) + '%'
     if rhythm_score >= 80:
@@ -204,10 +209,10 @@ window.config(menu=menubar)
 
 operationmenu1 = Menu(menubar, tearoff=0)
 menubar.add_command(label='Reset', command=clear)
-
+'''
 operationmenu2 = Menu(menubar, tearoff=0)
 menubar.add_command(label='Help', command=helpMe)
-
+'''
 operationmenu3 = Menu(menubar, tearoff=0)
 menubar.add_command(label='Close', command=closeProgram)
 
