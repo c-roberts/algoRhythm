@@ -564,30 +564,17 @@ def test1():
     test_xml = extract_actual_rhythm("./Testing Data/test5.xml", 120)
     print(test_xml)
     '''
-    audio_path = "./Testing Data/User Ex1 - 80bpm correct.wav"
-    sheet_music = "./Testing Data/User Ex1 score.xml"
+    audio_path = "./Documents/GitHub/algoRhythm/Testing_Data/Ex1_80bmp_midi_piano.wav"
+    sheet_music = "./documents/github/algorhythm/Testing_Data/Ex1.xml"
     bpm=80
-    rhythm_leniency = .5
+    rhythm_leniency = 3
 
-    signal, sr = librosa.load(audio_path, sr=None)
-
-    user_rhythm = extract_user_rhythm(signal, sr)
-    #print(user_rhythm)
-    #actual_rhythm = extract_actual_rhythm(sheet_music, bpm)
-    incorrect, sr = librosa.load( "./Testing Data/User Ex1 - 80bpm incorrect1.wav", sr=None)
-    #print(actual_rhythm)
-    incorrect_rhythm = extract_user_rhythm(incorrect, sr)
-    #print(incorrect_rhythm)
-    rhythm_score, rhythm_errors = compare_rhythm(user_rhythm, incorrect_rhythm, rhythm_leniency)
-
-    print("\n\n------------ Results ------------")
-    print("\nIncorrect length: " + str(incorrect_rhythm.size))
-    print("Correct length: " + str(user_rhythm.size))
+    print("\n\n\n ------- Running ---------")
+    rhythm_score, rhythm_errors = algoRhythm(sheet_music, audio_path, bpm, rhythm_leniency)
     print("Rhythm Score: " + str(rhythm_score))
     print("Number of errors: " + str(len(rhythm_errors)))
 
-
-    #test_score, test_errors = algoRhythm(audio_path, sheet_music, bpm, rhythm_leniency)
+    return
 
 
 def test2():
@@ -619,8 +606,7 @@ def test2():
 
 
 ### Run tests ###
-
-test2()
+test1()
 
 
 
