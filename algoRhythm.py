@@ -9,7 +9,7 @@ from librosa import display
 standard_sr = 44100
 
 
-def algoRhythm(file, user_signal, bpm, leniency):
+def algoRhythm(sheet_file, user_signal, bpm, leniency, out):
     '''
     INPUTS:
         file: name of .xml file in Testing_Data directory
@@ -23,14 +23,16 @@ def algoRhythm(file, user_signal, bpm, leniency):
 
     '''
     #xml_file = file
-    ly_filepath = file
+    if ".xml" in sheet_file:
+        xml_to_ly(sheet_file, p = False)
+
+    ly_filepath = sheet_file
     ly_file = user_signal
 
     #convert .xml file to .ly
     #xml_to_ly(xml_file, p = False)
 
     #extract text from .ly file
-    #ly_filepath = file[:len(file)-3]+'ly'
     data = ly_to_text(ly_filepath)
 
     #extract truth onsets from .ly file
@@ -62,7 +64,7 @@ def algoRhythm(file, user_signal, bpm, leniency):
 
 
     #markup .ly file with mistakes
-    ly_markup(error_margins, error_timestamps, error_types, file, user_signal, bpm)
+    ly_markup(error_margins, error_timestamps, error_types, sheet_file, user_signal, bpm, out)
 
     return score, error_timestamps
 
@@ -111,22 +113,6 @@ def plot_performance(user, actual, sr):
 ##      utilities for rhythm     ##
 ###################################
 
-
-def extract_user_bpm(signal):
-    '''
-    Inputs: audio signal (1D np.array)
-    Outputs: estimated bpm of user signal
-
-    Uses librosa's onset_detection to extract a 1D np.array
-    of the onsets in an audio signal
-
-    '''
-    sr = standard_sr
-    rhythm_arr = librosa.onset.onset_detect(signal, sr=sr, units='time')
-
-    return rhythm_arr
-
-
 def extract_user_rhythm(signal):
     '''
     Inputs: audio signal (1D np.array)
@@ -137,7 +123,7 @@ def extract_user_rhythm(signal):
 
     '''
     signal , sr = librosa.core.load(signal)
-    signal = librosa.util.normalize(signal, norm=2)
+    #signal = librosa.util.normalize(signal, norm=2)
     rhythm_arr = librosa.onset.onset_detect(signal, sr=standard_sr,units='time')
 
     return rhythm_arr
@@ -186,12 +172,7 @@ def xml_to_ly(filepath, p = False):
         raise ValueError('File Not Found')
     if p ==  True:
         print('returned value:', returned_value)
-    '''
-    print(filepath)
-    lyfile = musicxml2ly.convert(filepath, None)
-    print(lyfile)
-    return lyfile
-    '''
+
 
 
 
@@ -429,12 +410,12 @@ def compare_onsets(user_onsets, actual_onsets, leniency_len, bpm):
 
 
 
-def ly_markup(error_margins, error_timestamps, error_types, filename, output_name, bpm):
+def ly_markup(error_margins, error_timestamps, error_types, filename, output_name, bpm, out):
     #open ly file
     ly_file = filename
     data = ly_to_text(ly_file)
     #create new txt file for markup
-    filename = output_name+"_markup.ly"
+    filename = out
     markup = open(filename,"w+")
 
     #skip header information

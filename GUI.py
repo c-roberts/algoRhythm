@@ -1,5 +1,7 @@
 from tkinter import *
 from tkinter.filedialog import askopenfilename
+from tkinter.filedialog import asksaveasfilename
+
 from tkinter import messagebox
 import algoRhythm
 
@@ -55,10 +57,12 @@ def submit():
     print("Leniency: ", leniency.get())
     print("\n\n")
 
+    out = asksaveasfilename(defaultextension='.ly')
 
-    rhythm_score, error_timestamps = algoRhythm.algoRhythm(sheet_music, audio_path, BPM, leniency.get())
+    rhythm_score, error_timestamps = algoRhythm.algoRhythm(sheet_music, audio_path, BPM, leniency.get(),out)
     print(rhythm_score)
     rhythm_score = int(round(rhythm_score))
+
 
     # display score
     # change color based on score?
