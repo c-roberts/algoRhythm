@@ -25,13 +25,13 @@
     } 
 PartPOneVoiceOne =  {
     \clef "treble" \key c \major \numericTimeSignature\time 4/4 f'4 f'4
-    f'8 [ f'8 ] r8 f'8 ^"Missing Note"  | % 2
+    f'8 [ f'8 ] r8 f'8 | % 2
     \once \override TupletBracket #'stencil = ##f
     \times 2/3  {
-        f'8 [ f'8 ^"Extra Note"  f'8 ^"Missing Note"  ] }
-    f'8 [ f'8 ] f'4 f'4 | % 3
-    f'16 ^"Extra Note"  [ f'16 ^"Extra Note"  f'8 ] f'8 [ f'8 ] r8 ^"Missing Note"  f'8 f'4 | % 4
-    f'2 ^"Late"  r8 ^"Extra Note"  \tempo 4=80 f'8 r4 \bar "|."
+        f'8 [ f'8 ^"Extra Note"  f'8 ^"Extra Note"  ] }
+    f'8 [ f'8 ] f'4 ^"Extra Note"  f'4 ^"Extra Note"  | % 3
+    f'16 [ f'16 f'8 ] f'8 [ f'8 ] r8 f'8 f'4 | % 4
+    f'2 r8 \tempo 4=80 f'8 r4 \bar "|."
     }
 
 

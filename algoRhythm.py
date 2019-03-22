@@ -2,7 +2,7 @@ from IPython.display import Audio
 import IPython, numpy as np, scipy as sp, matplotlib.pyplot as plt, matplotlib, librosa
 import os
 from ly import *
-import musicxml2ly
+#import musicxml2ly
 from librosa import display
 
 
@@ -22,24 +22,26 @@ def algoRhythm(file, user_signal, bpm, leniency):
 
 
     '''
-    xml_file = file
+    #xml_file = file
+    ly_filepath = file
     ly_file = user_signal
 
     #convert .xml file to .ly
-    xml_to_ly(xml_file, p = False)
+    #xml_to_ly(xml_file, p = False)
 
     #extract text from .ly file
-    ly_filepath = file[:len(file)-3]+'ly'
+    #ly_filepath = file[:len(file)-3]+'ly'
     data = ly_to_text(ly_filepath)
 
     #extract truth onsets from .ly file
-    true_onsets = ly_onsets(80, data)
+    true_onsets = extract_actual_rhythm(80, data)
 
     #extract user onsets from .wav file
     user_onsets = extract_user_rhythm(user_signal)
 
     #convert leniency value to note corresponding note duration
     l_note = None
+    print(leniency)
     if(leniency < 1  or leniency > 5):
         raise ValueError("leniency must be between 1 and 5")
     else:
@@ -134,8 +136,6 @@ def extract_user_rhythm(signal):
     of the onsets in an audio signal
 
     '''
-    signal +=".wav"
-    signal = "Testing_Data//" + signal
     signal , sr = librosa.core.load(signal)
     signal = librosa.util.normalize(signal, norm=2)
     rhythm_arr = librosa.onset.onset_detect(signal, sr=standard_sr,units='time')
@@ -191,11 +191,12 @@ def xml_to_ly(filepath, p = False):
     lyfile = musicxml2ly.convert(filepath, None)
     print(lyfile)
     return lyfile
-    
+    '''
 
 
 
 def ly_to_text(filepath):
+
     '''
     INPUTS:
         filepath: string to file path of .ly file
@@ -203,6 +204,7 @@ def ly_to_text(filepath):
     RETURNS:
         data: string of encoded text from .ly file
     '''
+
     ly_file = filepath
     with open(ly_file, encoding='cp1252') as f: #Might have to change encoding depending on how the mac version is
         data = f.read()
@@ -211,12 +213,14 @@ def ly_to_text(filepath):
 
 def parse_PPOVO(bpm, PPOVO):
     '''
+ 
     INPUTS:
         bpm: beats per minute integer
         PPOVO: string of ly file containing note information
     --------------------------------
     RETURNS:
         onset_times: array of all float ground truth onset times
+
     '''
     time = 0.0
     onset_times = []
@@ -302,6 +306,7 @@ def parse_PPOVO(bpm, PPOVO):
 
 def note_to_seconds(bpm, note_val,tf=1.0):
     '''
+
     INPUTS:
         beats per minute integer
         note_val: type of note in float
@@ -314,6 +319,7 @@ def note_to_seconds(bpm, note_val,tf=1.0):
     RETURNS:
         duration: note duration in seconds
     '''
+
     duration = (60.0/bpm)*(4.0/note_val)*tf
     return duration
 
@@ -327,8 +333,8 @@ def search_onsets(onsets, lo, hi):
 
     Inputs: array of onsets, lower leniency bound, upper leniency bound
     Outputs: array index of user onset closest to target onset, whether user onset is within leniency range
-    """
 
+    """
     l = 0
     r = len(onsets) - 1
     while l <= r:
@@ -350,6 +356,7 @@ def search_onsets(onsets, lo, hi):
 
 def compare_onsets(user_onsets, actual_onsets, leniency_len, bpm):
     '''
+
     Inputs:
         user_onset: array of user onset in seconds
         actual_signal: array of user onsets in seconds
@@ -358,6 +365,7 @@ def compare_onsets(user_onsets, actual_onsets, leniency_len, bpm):
     Outputs: evaluation score based on number of correctly placed onsets,
              error of user onset in seconds,
              timesteps of user onset errors
+ 
     '''
     error_margins = []
     error_timestamps = []
@@ -423,7 +431,7 @@ def compare_onsets(user_onsets, actual_onsets, leniency_len, bpm):
 
 def ly_markup(error_margins, error_timestamps, error_types, filename, output_name, bpm):
     #open ly file
-    ly_file = filename+".ly"
+    ly_file = filename
     data = ly_to_text(ly_file)
     #create new txt file for markup
     filename = output_name+"_markup.ly"
@@ -564,15 +572,7 @@ def ly_markup(error_margins, error_timestamps, error_types, filename, output_nam
 # ### Testing functions ###
 #
 def test1():
-    '''
-    my_signal, sr = librosa.load("Testing Data/test5.wav", sr=None)
-    test=extract_user_rhythm(my_signal)
-    print(test)
-    d_test= calculate_delta_time(test)
-    print(d_test)
-    test_xml = extract_actual_rhythm("./Testing Data/test5.xml", 120)
-    print(test_xml)
-    '''
+
     audio_path = "./Testing Data/User Ex1 - 80bpm correct.wav"
     sheet_music = "./Testing Data/User Ex1 score.xml"
     bpm=80
@@ -597,7 +597,7 @@ def test1():
 
 
     test_score, test_errors = algoRhythm(audio_path, sheet_music, bpm, rhythm_leniency)
-test1()
+#test1()
 
 #
 # def test2():

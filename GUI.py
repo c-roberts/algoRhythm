@@ -25,7 +25,7 @@ def inputXML():
     global sheet_music
     try:
         inputDataFile = askopenfilename()
-        if "xml" in inputDataFile:
+        if "xml" in inputDataFile or "ly" in inputDataFile:
             sheet_music = inputDataFile
             progress['text'] = 'Sheet music loaded.'
 
@@ -47,9 +47,7 @@ def submit():
     print("Sheet music path: ", sheet_music)
     print("Audio path: ", audio_path)
     try:
-        if (type(int(BPM)) != int):
-            progress['text'] = 'Please enter an integer value for tempo.'
-            return
+        BPM = int(BPM)
     except ValueError:
         progress['text'] = 'Please enter an integer value for tempo.'
         return
@@ -58,11 +56,13 @@ def submit():
     print("\n\n")
 
 
-    rhythm_score, rhythm_errors = algoRhythm.algoRhythm(audio_path, sheet_music, BPM, leniency.get())
+    rhythm_score, error_timestamps = algoRhythm.algoRhythm(sheet_music, audio_path, BPM, leniency.get())
+    print(rhythm_score)
+    rhythm_score = int(round(rhythm_score))
 
     # display score
     # change color based on score?
-    mistakes = len(rhythm_errors)
+    mistakes = len(error_timestamps)
     #print(mistakes)
 
     score_['text'] = str(rhythm_score) + '%'
