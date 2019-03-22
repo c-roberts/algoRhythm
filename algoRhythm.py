@@ -1,9 +1,9 @@
 from IPython.display import Audio
 import IPython, numpy as np, scipy as sp, matplotlib.pyplot as plt, matplotlib, librosa
 import os
-from ly import*
+from ly import *
+import musicxml2ly
 from librosa import display
-
 
 
 standard_sr = 44100
@@ -22,7 +22,7 @@ def algoRhythm(file, user_signal, bpm, leniency):
 
 
     '''
-    xml_file = file+ ".xml"
+    xml_file = file
     ly_file = file+".ly"
 
     #convert .xml file to .ly
@@ -177,13 +177,25 @@ def xml_to_ly(filepath, p = False):
         filepath: location of xml file
         p: bool to print cmd response
     '''
-    file = filepath
-    cmd = 'musicxml2ly -a '+file
+
+    '''
+    print("\n\n\n")
+    print(filepath)
+    cmd = 'musicxml2ly -a '+ filepath
     returned_value = os.system(cmd)
+    print(returned_value)
+    print(cmd)
     if returned_value != 0:
         raise ValueError('File Not Found')
     if p ==  True:
         print('returned value:', returned_value)
+    '''
+    print(filepath)
+    lyfile = musicxml2ly.convert(filepath, None)
+    print(lyfile)
+    return lyfile
+    
+
 
 
 def ly_to_text(filepath):
@@ -560,6 +572,9 @@ def test1():
     sheet_music = "./documents/github/algorhythm/Testing_Data/Ex1.xml"
     bpm=80
     rhythm_leniency = 3
+    print("helloww?????")
+    ly = xml_to_ly(sheet_music)
+    print(ly)
 
     print("\n\n\n ------- Running ---------")
     rhythm_score, rhythm_errors = algoRhythm(sheet_music, audio_path, bpm, rhythm_leniency)
@@ -572,7 +587,8 @@ def test1():
 
 
 ### Run tests ###
-#test1()
+print("wtf")
+test1()
 
 
 

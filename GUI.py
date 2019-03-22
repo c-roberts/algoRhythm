@@ -29,8 +29,6 @@ def inputXML():
             sheet_music = inputDataFile
             progress['text'] = 'Sheet music loaded.'
 
-        if "xml" in inDataFile:
-            sheet_music = inDataFile
         else:
             progress['text'] = 'Data not recognized. Make sure file is .XML format.'
     except IOError:
