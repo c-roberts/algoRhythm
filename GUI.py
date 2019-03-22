@@ -4,36 +4,45 @@ from tkinter import messagebox
 import algoRhythm
 
 
+
 def inputWAV():
-    global audio_path, BPM, rhythm_leniency, pitch_leniency
+    global audio_path
     try:
         inputDataFile = askopenfilename()
-        inDataFile = open(inputDataFile, 'r')
 
+<<<<<<< HEAD
         if ".wav" in inDataFile:
             audio_path = inDataFile
+=======
+        if "wav" in inputDataFile:
+            audio_path = inputDataFile
+            progress['text'] = 'User performance loaded.'
+
+>>>>>>> 7e7a1b976c8905a0fb38063e270c80505926b955
         else:
             progress['text'] = 'Data not recognized. Make sure file is .WAV format.'
 
-        inDataFile.close()
     except IOError:
-        progress['text'] = 'Data not loaded.'
+        progress['text'] = 'WAV not loaded.'
     return
 
 def inputXML():
-    global sheet_music, BPM, rhythm_leniency, pitch_leniency
+    global sheet_music
     try:
         inputDataFile = askopenfilename()
-        inDataFile = open(inputDataFile, 'r')
+        if "xml" in inputDataFile:
+            sheet_music = inputDataFile
+            progress['text'] = 'Sheet music loaded.'
 
+<<<<<<< HEAD
         if ".xml" in inDataFile:
             sheet_music = inDataFile
+=======
+>>>>>>> 7e7a1b976c8905a0fb38063e270c80505926b955
         else:
             progress['text'] = 'Data not recognized. Make sure file is .XML format.'
-
-        inDataFile.close()
     except IOError:
-        progress['text'] = 'Data not loaded.'
+        progress['text'] = 'XML not loaded.'
     return
 
 def closeProgram():
@@ -44,6 +53,9 @@ def closeProgram():
 
 def submit():
     BPM = tempo.get()
+    print("\n\n----RUNNING----")
+    print("Sheet music path: ", sheet_music)
+    print("Audio path: ", audio_path)
     try:
         if (type(int(BPM)) != int):
             progress['text'] = 'Please enter an integer value for tempo.'
@@ -51,12 +63,22 @@ def submit():
     except ValueError:
         progress['text'] = 'Please enter an integer value for tempo.'
         return
+    print("BPM: ", BPM)
+    print("Leniency: ", leniency.get())
+    print("\n\n")
 
+<<<<<<< HEAD
 
     rhythm_score, rhythm_errors = algoRhythm.algoRhythm(audio_path, sheet_music, BPM, leniency)
     #rhythm_score = 40
     #rhythm_errors = [4,5,6,7]
     # display score
+=======
+    
+    rhythm_score, rhythm_errors = algoRhythm.algoRhythm(audio_path, sheet_music, BPM, leniency.get())
+ 
+    # display score 
+>>>>>>> 7e7a1b976c8905a0fb38063e270c80505926b955
     # change color based on score?
     mistakes = len(rhythm_errors)
     #print(mistakes)

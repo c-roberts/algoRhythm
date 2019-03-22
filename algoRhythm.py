@@ -552,6 +552,7 @@ def ly_markup(error_margins, error_timestamps, error_types, filename, output_nam
     markup.close()
 
 
+<<<<<<< HEAD
 # ### Testing functions ###
 #
 # def test1():
@@ -779,3 +780,218 @@ def ly_markup(error_margins, error_timestamps, error_types, filename, output_nam
 #     score = 100 - (len(errors) / actual_rhythm.size) * 100
 #
 #     return score, errors
+=======
+### Testing functions ###
+
+def test1():
+    '''
+    my_signal, sr = librosa.load("Testing Data/test5.wav", sr=None)
+    test=extract_user_rhythm(my_signal)
+    print(test)
+    d_test= calculate_delta_time(test)
+    print(d_test)
+    test_xml = extract_actual_rhythm("./Testing Data/test5.xml", 120)
+    print(test_xml)
+    '''
+    audio_path = "./Documents/GitHub/algoRhythm/Testing_Data/Ex1_80bmp_midi_piano.wav"
+    sheet_music = "./documents/github/algorhythm/Testing_Data/Ex1.xml"
+    bpm=80
+    rhythm_leniency = 3
+
+    print("\n\n\n ------- Running ---------")
+    rhythm_score, rhythm_errors = algoRhythm(sheet_music, audio_path, bpm, rhythm_leniency)
+    print("Rhythm Score: " + str(rhythm_score))
+    print("Number of errors: " + str(len(rhythm_errors)))
+
+    return
+
+
+def test2():
+    path = './Testing Data/'
+    correct = '/User Ex1 - 80bpm correct.wav'
+    incorrect = '/User Ex1 - 80bpm incorrect1.wav'
+    signal, sr = librosa.load(path + correct)
+    actual_signal, sr = librosa.load(path + incorrect)
+    bpm = 80
+    user_rhythm = extract_user_rhythm(signal, sr)
+    actual_rhythm = extract_user_rhythm(actual_signal, sr)
+
+    # Compare user rhythm with correct rhythm
+    rhythm_leniency = .05
+    #rhythm_score, rhythm_errors = compare_rhythm(user_rhythm, actual_rhythm, rhythm_leniency)
+    score, error_margins, error_timestamps = compare_onsets(signal, actual_signal, rhythm_leniency)
+    print('Error margins per onset:', error_margins)
+    print('Timesteps of Errors:', error_timestamps)
+    print('Score:', score)
+
+    # Plot user rhythm against correct rhythm over time
+    plot_bpm_over_time(signal, actual_signal, sr)
+
+    # Plot onsets of user signal against the correct beat placements
+    user_bpm, target_bpm, nrmse = plot_performance(signal, actual_signal, sr)
+    print('User BPM:', round(user_bpm, 1))
+    print('Target BPM:', round(target_bpm, 1))
+    print('Normalized Root Mean Squared Error:', round(nrmse, 3))
+
+
+### Run tests ###
+test1()
+
+
+
+### DEPRECATED FUNCTIONS ###
+
+##################################
+##      utilities for pitch     ##
+##################################
+
+
+def extract_user_pitch(signal):
+    '''
+    Inputs: audio signal (1D np.array)
+    Outputs: fundamental freq at each sample (1D np.array)
+
+    Extracts freq (hertz) of user's note at each sample from audio signal
+
+    '''
+    raise NotImplementedError('Function not implemented.')
+    return pitch_arr
+
+
+def extract_actual_pitch(actual_signal):
+    '''
+    Inputs: audio signal (1D np.array)
+    Outputs: fundamental freq at each sample (1D np.array)
+
+    Extracts freq (hertz) of actual note at each sample from audio signal
+
+    '''
+    raise NotImplementedError('Function not implemented.')
+    return pitch_arr
+
+
+def compare_pitch(user_pitch, actual_pitch, pitch_leniency):
+    '''
+    Inputs: user's pitch (np.array of fundamental freq at each sample), actual
+    rhythm (np.array of fundamental freq at each sample)
+    Outputs: score for accuracy (0-100), timesteps of errors (list)
+
+    '''
+    errors = []
+    score=0
+    raise NotImplementedError('Function not implemented.')
+    return score, errors
+
+
+def create_freq_dict(tuning_pitch=440):
+    '''
+    Inputs: tuning pitch of A4 (default=440)
+    Outputs: 2D list [name,freq]
+
+    Runs on startup and everytime the user changes the value of A4
+
+    '''
+    global freq_chart
+    global notes
+    freq_chart=[]
+    
+    notes = [	"C0","C#0","D0","D#0","E0","F0","F#0","G0","G#0","A0","A#0","B0",
+                "C1","C#1","D1","D#1","E1","F1","F#1","G1","G#1","A1","A#1","B1",
+                "C2","C#2","D2","D#2","E2","F2","F#2","G2","G#2","A2","A#2","B2",
+                "C3","C#3","D3","D#3","E3","F3","F#3","G3","G#3","A3","A#3","B3",
+                "C4","C#4","D4","D#4","E4","F4","F#4","G4","G#4","A4","A#4","B4",
+                "C5","C#5","D5","D#5","E5","F5","F#5","G5","G#5","A5","A#5","B5",
+                "C6","C#6","D6","D#6","E6","F6","F#6","G6","G#6","A6","A#6","B6",
+                "C7","C#7","D7","D#7","E7","F7","F#7","G7","G#7","A7","A#7","B7",
+                "C8","C#8","D8","D#8","E8","F8","F#8","G8","G#8","A8","A#8","B8",
+                "C9","C#9","D9","D#9","E9","F9","F#9","G9","G#9","A9","A#9","B9" ]
+    
+    A4_INDEX = 57
+
+    for i in range(0, len(notes)-1,1):
+        distance = i - A4_INDEX
+        freq = tuning_pitch * (2 ** (distance/12))
+        freq_chart.append([notes[i], freq])
+    
+    return
+
+
+def get_cent_diff(user_pitch):
+    '''
+    Inputs: frequency of user's note
+    Outputs: difference from closest in-tune freq (cents)
+
+    Calculates the difference between closest in-tune freq and user's freq
+    by finding closest pitch and calculating the difference in cents
+    '''
+
+    # find the closest freq from freq_chart (min distance)
+    cent_diff=0
+    actual_pitch=freq_chart[find_closest(user_pitch)][1]
+ 
+    cent_diff=1200* np.log(user_pitch/actual_pitch)/np.log(2)
+
+    return cent_diff
+
+
+def find_closest(pitch):
+    '''
+    Inputs: user pitch (hertz)
+
+    Returns index of closest in-tune pitch
+    '''
+    min_distance=abs(float( freq_chart[0][1] - pitch ))
+    for index in range(1,len(freq_chart)-1,1):
+        cur_distance = abs(float( freq_chart[index][1] - pitch ))
+        if (min_distance <= cur_distance):
+            break
+        else:
+            min_distance = cur_distance
+        
+    return (index-1)
+
+def calculate_delta_time(onsets):
+    '''
+    Inputs: onsets from user signal or sheet music rhythm
+    Outputs: difference in time from each onset to the next
+    '''
+    d_time = np.zeros(onsets.shape)
+    for i in range(1, onsets.size-1, 1):
+        d_time[i] = onsets[i] - onsets[i-1]
+
+    return d_time
+
+
+def compare_rhythm(user_rhythm, actual_rhythm, leniency):
+    """
+    Inputs: user's rhythm (np.array of timesteps of onsets), actual
+    rhythm (np.array of timesteps of onsets)
+    Outputs: score for accuracy (0-100), timesteps of errors (list)
+
+    """
+    errors = []
+
+    diff = actual_rhythm.size - user_rhythm.size # extra or missing notes
+
+    # calculate delta_time and align first note to zero
+    d_user = calculate_delta_time(user_rhythm)
+    d_actual = calculate_delta_time(actual_rhythm)
+
+    for i in range(1, d_actual.size):
+        if d_actual[i]-leniency < d_user[i] < d_actual[i]+leniency:
+            # correct, move on
+            #print("noice", i)
+            print()
+
+        else:
+            # add timestep to errors
+            #print("BAD", i)
+            errors.append(user_rhythm[i])
+
+            # try to figure out if extra
+            # not implemented
+
+    score = 100 - (len(errors) / actual_rhythm.size) * 100
+
+    return score, errors
+>>>>>>> 7e7a1b976c8905a0fb38063e270c80505926b955
