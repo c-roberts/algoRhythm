@@ -36,13 +36,15 @@ def algoRhythm(sheet_file, user_signal, bpm, leniency, out):
 
     #extract truth onsets from .ly file
     true_onsets = extract_actual_rhythm(80, data)
+    print(true_onsets)
 
     #extract user onsets from .wav file
     user_onsets = extract_user_rhythm(user_signal)
+    print(user_onsets)
+
 
     #convert leniency value to note corresponding note duration
     l_note = None
-    print(leniency)
     if(leniency < 1  or leniency > 5):
         raise ValueError("leniency must be between 1 and 5")
     else:
@@ -122,8 +124,8 @@ def extract_user_rhythm(signal):
 
     '''
     signal , sr = librosa.core.load(signal)
-    #signal = librosa.util.normalize(signal, norm=2)
-    rhythm_arr = librosa.onset.onset_detect(signal, sr=standard_sr,units='time')
+    signal = librosa.util.normalize(signal, norm=2)
+    rhythm_arr = librosa.onset.onset_detect(signal, sr=standard_sr, units='time', wait=10, pre_avg=3, post_avg=3, pre_max=3, post_max=3)
 
     return rhythm_arr
 
@@ -169,15 +171,10 @@ def xml_to_ly(filepath, p = False):
     returned_value = os.system(cmd)
     #myly=musicxml2ly.convert(filepath)
     
-    print(returned_value)
-    print(cmd)
     if returned_value != 0:
         raise ValueError('File Not Found')
     if p ==  True:
-        print('returned value:', returned_value)
-    
-    #return myly
-    
+        print('returned value:', returned_value)    
 
 
 
@@ -376,10 +373,12 @@ def compare_onsets(user_onsets, actual_onsets, leniency_len, bpm):
     # align first onset to time 0
     user_onsets = np.subtract(user_onsets, user_onsets[0])
     actual_onsets = np.subtract(actual_onsets, actual_onsets[0])
+    '''
     print("adjusted user_onsets:",user_onsets)
     print("len of adjust user_onsets",len(user_onsets))
     print("adjusted actual_onsets", actual_onsets)
     print("len of adjust actual_onsets",len(actual_onsets))
+    '''
     last_ind = 0
     for i in range(1, len(actual_onsets)):
         # aligned = user_onsets[(user_onsets >= actual_onsets[i]-leniency) & (user_onsets <= actual_onsets[i]+leniency)]
@@ -568,12 +567,8 @@ def test1():
     signal, sr = librosa.load(audio_path, sr=None)
 
     user_rhythm = extract_user_rhythm(signal, sr)
-    #print(user_rhythm)
-    #actual_rhythm = extract_actual_rhythm(sheet_music, bpm)
     incorrect, sr = librosa.load( "./Testing Data/Ex1_80bpm incorrect1.wav", sr=None)
-    #print(actual_rhythm)
     incorrect_rhythm = extract_user_rhythm(incorrect, sr)
-    #print(incorrect_rhythm)
     rhythm_score, rhythm_errors = compare_rhythm(user_rhythm, incorrect_rhythm, rhythm_leniency)
 
     print("\n\n------------ Results ------------")

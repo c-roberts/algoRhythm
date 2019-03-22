@@ -2581,7 +2581,7 @@ def get_all_voices (parts):
 
 
 def option_parser ():
-    p = lilylib.get_option_parser (usage = _ ("musicxml2ly [OPTION]... FILE.xml"),
+    p = lilylib.get_option_parser (usage = ("musicxml2ly [OPTION]... FILE.xml"),
                              description =
 _ ("""Convert MusicXML from FILE.xml to LilyPond input.
 If the given filename is -, musicxml2ly reads from the command line.
@@ -2613,35 +2613,35 @@ information.""") % 'lilypond')
                   action="callback",
                   callback=lilylib.handle_loglevel_option,
                   callback_args=("DEBUG",),
-                  help = _ ("be verbose"))
+                  help = ("be verbose"))
 
     p.add_option ('', '--lxml',
                   action = "store_true",
                   default = False,
                   dest = "use_lxml",
-                  help = _ ("use lxml.etree; uses less memory and cpu time"))
+                  help = ("use lxml.etree; uses less memory and cpu time"))
 
     p.add_option ('-z', '--compressed',
                   action = "store_true",
                   dest = 'compressed',
                   default = False,
-                  help = _ ("input file is a zip-compressed MusicXML file"))
+                  help = ("input file is a zip-compressed MusicXML file"))
 
     p.add_option ('-r', '--relative',
                   action = "store_true",
                   default = True,
                   dest = "relative",
-                  help = _ ("convert pitches in relative mode (default)"))
+                  help = ("convert pitches in relative mode (default)"))
 
     p.add_option ('-a', '--absolute',
                   action = "store_false",
                   dest = "relative",
-                  help = _ ("convert pitches in absolute mode"))
+                  help = ("convert pitches in absolute mode"))
 
     p.add_option ('-l', '--language',
-                  metavar = _ ("LANG"),
+                  metavar = ("LANG"),
                   action = "store",
-                  help = _ ("use LANG for pitch names, e.g. 'deutsch' for note names in German"))
+                  help = ("use LANG for pitch names, e.g. 'deutsch' for note names in German"))
 
     p.add_option ("--loglevel",
                   help=_ ("Print log messages according to LOGLEVEL "
@@ -2655,33 +2655,33 @@ information.""") % 'lilypond')
                   action = "store_false",
                   default = True,
                   dest = "convert_directions",
-                  help = _ ("do not convert directions (^, _ or -) for articulations, dynamics, etc."))
+                  help = ("do not convert directions (^, or -) for articulations, dynamics, etc."))
 
     p.add_option ('--nrp', '--no-rest-positions',
                   action = "store_false",
                   default = True,
                   dest = "convert_rest_positions",
-                  help = _ ("do not convert exact vertical positions of rests"))
+                  help = ("do not convert exact vertical positions of rests"))
 
     p.add_option ('--npl', '--no-page-layout',
                   action = "store_false",
                   default = True,
                   dest = "convert_page_layout",
-                  help = _ ("do not convert the exact page layout and breaks"))
+                  help = ("do not convert the exact page layout and breaks"))
 
     p.add_option ('--no-beaming',
                   action = "store_false",
                   default = True,
                   dest = "convert_beaming",
-                  help = _ ("do not convert beaming information, use lilypond's automatic beaming instead"))
+                  help = ("do not convert beaming information, use lilypond's automatic beaming instead"))
 
     p.add_option ('-o', '--output',
-                  metavar = _ ("FILE"),
+                  metavar = ("FILE"),
                   action = "store",
                   default = None,
                   type = 'string',
                   dest = 'output_name',
-                  help = _ ("set output filename to FILE, stdout if -"))
+                  help = ("set output filename to FILE, stdout if -"))
 
     p.add_option ('-m', '--midi',
                   action = "store_true",
@@ -2691,7 +2691,7 @@ information.""") % 'lilypond')
 
     p.add_option_group ('',
                         description = (
-            _ ("Report bugs via %s")
+            ("Report bugs via %s")
             % 'http://post.gmane.org/post.php'
             '?group=gmane.comp.gnu.lilypond.bugs') + '\n')
     return p
