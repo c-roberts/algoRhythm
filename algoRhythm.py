@@ -2,53 +2,126 @@ from IPython.display import Audio
 import IPython, numpy as np, scipy as sp, matplotlib.pyplot as plt, matplotlib, librosa
 import os
 from ly import*
+from librosa import display
 
-sr=44100
 
-def algoRhythm(audio_path, sheet_music, BPM, rhythm_leniency):
+
+standard_sr = 44100
+
+
+def algoRhythm(file, user_signal, bpm, leniency):
     '''
-    Inputs: audio file (.wav), sheet music (.PNG), BPM,
-    leninecy (0-5)
-    Outputs: score for rhythmic accuracy, timesteps of any errors
-
+    INPUTS:
+        file: name of .xml file in Testing_Data directory
+        user_signal: name of .wav file in Testing_Data directory of user performance
+        BPM: beats per minute the rhythmic accuracy will be evaluated at
+        leniency: integer 1-5 for how strict the accuracy guideline will be
+        
+    OUTPUTS:
+        score: float between 0-100 of users accuracy
+        
+        
     '''
-    # Initialize files and globals
-    signal, sr = librosa.load(audio_path, sr=None)
-    actual_signal = extract_sheet_music(sheet_music)
-    #create_freq_dict()
+    xml_file = file+ ".xml"
+    ly_file = file+".ly"
+    
+    #convert .xml file to .ly
+    xml_to_ly(xml_file, p = False)
+    
+    #extract text from .ly file
+    data = ly_to_text(ly_file)
+    
+    #extract truth onsets from .ly file
+    true_onsets = ly_onsets(80, data)
+
+    #extract user onsets from .wav file
+    user_onsets = extract_user_rhythm(user_signal)
+       
+    #convert leniency value to note corresponding note duration
+    l_note = None
+    if(leniency < 1  or leniency > 5):
+        raise ValueError("leniency must be between 1 and 5")
+    else:
+        if leniency == 1:
+            l_note = 256
+        elif leniency == 2:
+            l_note = 128
+        elif leniency == 3:
+            l_note = 64
+        elif leniency == 4:
+            l_note = 32
+        else:
+            l_note = 16
+    
+    
+    #compare rhythms of onsets and get errors
+    score, error_margins, error_timestamps, error_types = compare_onsets(user_onsets,true_onsets,l_note,bpm)
+    
+
+    #markup .ly file with mistakes
+    ly_markup(error_margins, error_timestamps, error_types, file, user_signal, bpm) 
+    
+    return score
+    
 
 
-    # Extract rhythm from user and from sheet music
-    user_rhythm = extract_user_rhythm(signal)
-    actual_rhythm = extract_actual_rhythm(actual_signal, BPM)
+### Plotting functions ###
+
+def plot_bpm_over_time(user, actual, sr):
+    onset_env_user = librosa.onset.onset_strength(user, sr=sr)
+    onset_env_actual = librosa.onset.onset_strength(actual, sr=sr)
+    user_rhythm = librosa.beat.tempo(onset_envelope=onset_env_user, sr=sr, aggregate=None)
+    actual_rhythm = librosa.beat.tempo(onset_envelope=onset_env_actual, sr=sr, aggregate=None)
+
+    plt.figure(figsize=(8, 4))
+    tg = librosa.feature.tempogram(onset_envelope=onset_env_actual, sr=sr)
+    librosa.display.specshow(tg, x_axis='time', y_axis='tempo')
+    user_time = librosa.frames_to_time(np.arange(len(user_rhythm)))
+    actual_time = librosa.frames_to_time(np.arange(len(actual_rhythm)))
+    plt.plot(user_time, user_rhythm, color='r', linewidth=1.5, label='User Signal')
+    plt.plot(actual_time, actual_rhythm, color='g', linewidth=1.5, label='Actual Signal')
+    plt.title('User BPM vs Target BPM Over Time')
+    plt.legend(frameon=True)
+    plt.show()
 
 
-    # Extract pitch from user and from sheet music
-    #user_pitch = extract_user_pitch(signal)
-    #actual_pitch = extract_actual_pitch(actual_signal)
+def plot_performance(user, actual, sr):
+    onset_env_user = librosa.onset.onset_strength(user, sr=sr, aggregate=np.median)
+    onset_env_actual = librosa.onset.onset_strength(actual, sr=sr, aggregate=np.median)
+    user_rhythm, user_beats = librosa.beat.beat_track(onset_envelope=onset_env_user, sr=sr)
+    actual_rhythm, actual_beats = librosa.beat.beat_track(onset_envelope=onset_env_actual, sr=sr)
+    nrms = np.sqrt(((user_rhythm - actual_rhythm) ** 2).mean()) / np.mean(actual_rhythm)
 
+    plt.figure(figsize=(8, 4))
+    user_onset_times = librosa.frames_to_time(np.arange(len(onset_env_user)), sr=sr)
+    actual_onset_times = librosa.frames_to_time(np.arange(len(onset_env_actual)), sr=sr)
+    plt.plot(user_onset_times, librosa.util.normalize(onset_env_user), label='User Signal')
+    plt.vlines(actual_onset_times[actual_beats], 0, 1, alpha=0.6, color='r', linestyle='--', label='Target Beats')
+    plt.title('User Signal vs Target Beats')
+    plt.legend(frameon=True)
+    plt.show()
 
-    # Compare user and correct rhythm
-    rhythm_score, rhythm_errors = compare_rhythm(user_rhythm, actual_rhythm, rhythm_leniency)
-    #pitch_score, pitch_errors = compare_pitch(user_pitch, actual_pitch, pitch_leniency)
-
-    return rhythm_score, rhythm_errors
-
-def testing():
-    mySignal, sr = librosa.load("Testing Data/test5.wav", sr=None)
-    test=extract_user_rhythm(mySignal)
-    print(test)
-    d_test= calculate_delta_time(test)
-    print(d_test)
-
-    test_xml = extract_actual_rhythm("./Testing Data/test5.xml",  120)
-
-
+    return user_rhythm, actual_rhythm, nrms
 
 
 ###################################
 ##      utilities for rhythm     ##
 ###################################
+
+
+def extract_user_bpm(signal):
+    '''
+    Inputs: audio signal (1D np.array)
+    Outputs: estimated bpm of user signal
+
+    Uses librosa's onset_detection to extract a 1D np.array
+    of the onsets in an audio signal
+
+    '''
+    sr = standard_sr
+    rhythm_arr = librosa.onset.onset_detect(signal, sr=sr, units='time')
+
+    return rhythm_arr
 
 
 def extract_user_rhythm(signal):
@@ -60,12 +133,17 @@ def extract_user_rhythm(signal):
     of the onsets in an audio signal
 
     '''
-    rhythm_arr = librosa.onset.onset_detect(signal, sr=sr, units='time')
+    signal +=".wav"
+    signal = "Testing_Data//" + signal
+    signal , sr = librosa.core.load(signal)
+    signal = librosa.util.normalize(signal, norm=2)
+    rhythm_arr = librosa.onset.onset_detect(signal, sr=standard_sr,units='time')
     
     return rhythm_arr
 
 
-def extract_actual_rhythm(data, user_tempo):
+
+def extract_actual_rhythm(bpm,data):
     '''
     INPUTS:
         bpm: beats per minute integer
@@ -74,26 +152,23 @@ def extract_actual_rhythm(data, user_tempo):
     RETURNS:
         onset_times: array of floats for time stamps ground truth onsets
     '''
-    
-
-    #skip header information
-    start = data.find('PartPOneVoiceOne') 
-    #improper file type
+    # skip header information
+    start = data.find('PartPOneVoiceOne')
+    # improper file type
     if start == -1:
         raise ValueError('Improper File Format. File is not Monophonic')
-        
-    #adjust start to begin at PPOVO node
-    start +=  16
+
+    # adjust start to begin at PPOVO node
+    start += 16
     while data[start] != '{':
         start += 1
-        
-    PPOVO = data[start:(len(data)-1)]
-    
-    #parse through to find note section
-    onset_times = parse_PPOVO(user_tempo, PPOVO)
-    
-    return onset_times
 
+    PPOVO = data[start:(len(data) - 1)]
+
+    # parse through to find note section
+    onset_times = parse_PPOVO(bpm, PPOVO)
+
+    return onset_times
 
 
 def xml_to_ly(filepath, p = False):
@@ -119,7 +194,8 @@ def ly_to_text(filepath):
     RETURNS:
         data: string of encoded text from .ly file
     '''
-    with open(ly_file,encoding='cp1252') as f: #Might have to change encoding depending on how the mac version is
+    ly_file = filepath
+    with open(ly_file, encoding='cp1252') as f: #Might have to change encoding depending on how the mac version is
         data = f.read()
     return data
 
@@ -138,8 +214,7 @@ def parse_PPOVO(bpm, PPOVO):
     prev = None
     i = 0
     is_tuple = False    
-    tuple_fraction = 1.0
-    
+    tuple_fraction = 1
     #parse through PPOVO section
     while i < len(PPOVO)-2:
         #c -> current char in .ly text
@@ -198,7 +273,7 @@ def parse_PPOVO(bpm, PPOVO):
                 i+=1
                 c = PPOVO[i]
                 
-            if(c == "."): #adjust tuple_fraction for dotted note
+            if(c == "."): #dotted note
                 tuple_fraction = 1.5
                 
             #convert buffer to int to get note type
@@ -206,15 +281,15 @@ def parse_PPOVO(bpm, PPOVO):
                 note_val = int(buffer)
                 duration = note_to_seconds(bpm, note_val,tf=tuple_fraction)
                 time+=duration
-            
-            if(c == "."): #revert tf back back
+                
+            if(c == "."): #dotted note
                 tuple_fraction = 1.0
-    
 #             print("buffer:",buffer)
 #             print("Type:",t,"Length:",note_val,"Duration:",duration)
         i+=1
             
     return onset_times
+            
 
 def note_to_seconds(bpm, note_val,tf=1.0):
     '''
@@ -224,6 +299,7 @@ def note_to_seconds(bpm, note_val,tf=1.0):
             1.0 = whole note
             0.5 = half note
             etc...
+        tf: tuple fraction indicated in ly file
         
     -------------------------------
     RETURNS:
@@ -233,64 +309,327 @@ def note_to_seconds(bpm, note_val,tf=1.0):
     return duration
 
 
-def calculate_delta_time(onsets):
-    '''
-    Inputs: onsets from user signal or sheet music rhythm
-    Outputs: difference in time from each onset to the next
-    '''
-    d_time=np.zeros(onsets.shape)
-    for i in range(1, onsets.size-1, 1):
-        d_time[i]=onsets[i]-onsets[i-1]
-
-    return d_time
 
 
-def compare_rhythm(user_rhythm, actual_rhythm, leniency):
-    '''
-    Inputs: user's rhythm (np.array of timesteps of onsets), actual
-    rhythm (np.array of timesteps of onsets)
-    Outputs: score for accuracy (0-100), timesteps of errors (list)
 
-    '''
-    errors = []
-    score=0
+def search_onsets(onsets, lo, hi):
+    """
+    Binary search helper function to get user onset closest to target onset
 
-    diff = actual_rhythm.size - user_rhythm.size # extra or missing notes
+    Inputs: array of onsets, lower leniency bound, upper leniency bound
+    Outputs: array index of user onset closest to target onset, whether user onset is within leniency range
+    """
 
-    # calculate delta_time and align first note to zero
-    d_user = calculate_delta_time(user_rhythm)
-    d_actual = calculate_delta_time(actual_rhythm)
+    l = 0
+    r = len(onsets) - 1
+    while l <= r:
 
-    for i in range(1,d_actual.size):
-        if ( (d_actual-leniency ) < d_user < ( d_actual+leniency )):
-            # correct, move on
-            print("noice", i)
+        m = int(l + (r - l) / 2)
+
+        if lo <= onsets[m] <= hi:
+            return m, True
+
+        elif onsets[m] < hi:
+            l = m + 1
 
         else:
-            # add timestep to errors
-            errors.append(user_rhythm[i])
+            r = m - 1
 
-            # try to figure out if extra
-
-    score = (len(errors) / actual_rhythm.size) * 100
-
-    raise NotImplementedError('Function not implemented.')
-    return score, errors
+    return m - 1, False
 
 
-def extract_sheet_music(sheet_music):
+
+def compare_onsets(user_onsets, actual_onsets, leniency_len, bpm):
     '''
-    Inputs: sheet music (PNG)
-    Outputs: audio signal of sheet music (1D np.array)
-
-    Extracts midi from PNG and convert that to an audio signal
+    Inputs: 
+        user_onset: array of user onset in seconds
+        actual_signal: array of user onsets in seconds
+        leniency_len: note value for error window
+        BPM: BPM of ground truth 
+    Outputs: evaluation score based on number of correctly placed onsets,
+             error of user onset in seconds,
+             timesteps of user onset errors
     '''
-    raise NotImplementedError('Function not implemented.')
-    return actual_signal
+    error_margins = []
+    error_timestamps = []
+    error_types = []
+    score = None
+    
+    #no onsets case
+    if len(user_onsets) == 0:
+        score = 0
+        error_timestamps = actual_onsets
+        for i in range(0,len(actual_onsets)):
+            error_types.append("Missing Note")
+        return score, error_margins, error_timestamps , error_types
+        
+    
+    #convert leniency_len to time
+    l2 = leniency_len/2
+    l1 = note_to_seconds(bpm, leniency_len)
+    l2 = note_to_seconds(bpm,l2)
+    
+    # align first onset to time 0
+    user_onsets = np.subtract(user_onsets, user_onsets[0])
+    actual_onsets = np.subtract(actual_onsets, actual_onsets[0])
+    print("adjusted user_onsets:",user_onsets)
+    print("len of adjust user_onsets",len(user_onsets))
+    print("adjusted actual_onsets", actual_onsets)
+    print("len of adjust actual_onsets",len(actual_onsets))
+    last_ind = 0
+    for i in range(1, len(actual_onsets)):
+        # aligned = user_onsets[(user_onsets >= actual_onsets[i]-leniency) & (user_onsets <= actual_onsets[i]+leniency)]
+        # if len(aligned) > 0:
+        # if at least than one user onset is detected to fall within the leniency region around the actual onset
+        #    error_margins.append(0)
+
+        closest_onset = search_onsets(user_onsets, actual_onsets[i]-l1, actual_onsets[i]+l1)
+        closest_onset_1 = search_onsets(user_onsets, actual_onsets[i]-l2, actual_onsets[i]+l2)
+        if closest_onset[1]: # if onset is within leniency range
+#             error_margins.append(0)
+            donothing = True
+        else:
+            ind = closest_onset[0]
+            if ind != last_ind:
+                error_timestamps.append(round(user_onsets[ind], 2))
+                error_margins.append(round(user_onsets[ind] - actual_onsets[i], 2))
+                if closest_onset_1[1]:
+                    if ind<0:
+                        error_types.append("Early")
+                    else:
+                        error_types.append("Late")
+                else:
+                    error_types.append("Extra Note")
+            else:
+                error_types.append("Missing Note")
+                
+                
+            last_ind = ind
+
+    score = 100 - (len(error_timestamps) / actual_onsets.size) * 100
+
+    return score, error_margins, error_timestamps , error_types
+
+
+
+def ly_markup(error_margins, error_timestamps, error_types, filename, output_name, bpm):
+    #open ly file
+    ly_file = filename+".ly"
+    data = ly_to_text(ly_file)
+    #create new txt file for markup
+    filename = output_name+"_markup.ly"
+    markup = open(filename,"w+")
+    
+    #skip header information
+    start = data.find('PartPOneVoiceOne') 
+    
+    #improper file type
+    if start == -1:
+        raise ValueError('Improper File Format. File is not Monophonic')
+        
+    #adjust start to begin at PPOVO node
+    start +=  16
+    while data[start] != '{':
+        start += 1
+    
+   
+    #PPOVO data section
+    PPOVO = data[start:(len(data)-1)]
+    header = data[:start]
+    
+    
+    #PPOVO parsing information
+    time = 0.0
+    prev = None
+    i = 0
+    is_tuple = False    
+    tuple_fraction = 1
+    
+    #error tracking information
+    j = 0
+    errors = True
+    if len(error_types) == 0:
+        errors = False
+        
+    #parse through PPOVO section if errors exist
+    if errors:
+        while i < len(PPOVO)-2:
+            #c -> current char in .ly text
+            c = PPOVO[i]
+            c_next = PPOVO[i+1]
+            c_next_dig = c_next.isdigit()
+
+            if(c == "\\"): #check for override
+                i+=1
+                c = PPOVO[i]
+
+                tuplecheck = PPOVO.find("override TupletBracket",i) #check for tuple override
+
+                if(tuplecheck == i): #tuple override found
+                    i = PPOVO.find("times",i)
+                    i += 6 #skip to find ft
+                    n_buffer = ""
+                    d_buffer = ""
+                    c = PPOVO[i]
+
+                    while c != "/": #get ft numerator
+                        if(c.isdigit()):
+                            n_buffer += c
+                        i +=1
+                        c = PPOVO[i]                  
+
+                    while c != " ": #get ft denominator
+                        if(c.isdigit()):
+                            d_buffer += c
+                        i +=1
+                        c = PPOVO[i]
+                    c =  PPOVO[i]
+                    tuple_fraction = float(n_buffer)/float(d_buffer)
+                    is_tuple = True
+
+            elif(is_tuple and c == "}"): #check for end of tuple overide, reset values
+                is_tuple = False
+                tuple_fraction = 1
+                
+            c = PPOVO[i]
+            if(c == "'" or (c == "r" and c_next_dig)): #note or rest found
+                
+                #add note onset
+                t = None
+                if(c == "'"):
+                    t = "note"             
+                    #parse through note length indicator
+                    while(c == "'"):
+                        i += 1
+                        c = PPOVO[i]
+                else:
+                    t = "rest"
+                    i+=1
+                    c = PPOVO[i]
+                    
+                #buffer to get note/rest value
+                buffer = ""
+                
+                #keep going until total note len is found (1,2,4,8th,16th,32th note etc)
+                while (c.isdigit()):
+                    buffer+=c
+                    i+=1
+                    c = PPOVO[i]
+
+                if(c == "."): #dotted note
+                    tuple_fraction = 1.5
+
+                #convert buffer to int to get note type        
+                if(buffer != ""):
+                    note_val = int(buffer)
+                    duration = note_to_seconds(bpm, note_val,tf=tuple_fraction)
+                    
+                    #error marking
+                    error_time = float('inf')
+                    if j < len(error_timestamps):
+                        error_time = error_timestamps[j] 
+
+
+                    while error_time <= time and j < len(error_timestamps):
+                        error_message = " "+"^\"" + error_types[j] + "\"" + " "
+                        PPOVO = PPOVO[:i] + error_message + PPOVO[i:]
+                        i += len(error_message)
+                        j+=1
+                        if j < len(error_timestamps):
+                            error_time = error_timestamps[j]
+                    
+                    
+                    time+=duration
+                        
+
+
+                if(c == "."): #dotted note post correction
+                    tuple_fraction = 1.0
+                    
+            i+=1
+    data = header + PPOVO
+    markup.write(data)
+    markup.close()
+
+
+### Testing functions ###
+
+def test1():
+    '''
+    my_signal, sr = librosa.load("Testing Data/test5.wav", sr=None)
+    test=extract_user_rhythm(my_signal)
+    print(test)
+    d_test= calculate_delta_time(test)
+    print(d_test)
+    test_xml = extract_actual_rhythm("./Testing Data/test5.xml", 120)
+    print(test_xml)
+    '''
+    audio_path = "./Testing Data/User Ex1 - 80bpm correct.wav"
+    sheet_music = "./Testing Data/User Ex1 score.xml"
+    bpm=80
+    rhythm_leniency = .5
+
+    signal, sr = librosa.load(audio_path, sr=None)
+
+    user_rhythm = extract_user_rhythm(signal, sr)
+    #print(user_rhythm)
+    #actual_rhythm = extract_actual_rhythm(sheet_music, bpm)
+    incorrect, sr = librosa.load( "./Testing Data/User Ex1 - 80bpm incorrect1.wav", sr=None)
+    #print(actual_rhythm)
+    incorrect_rhythm = extract_user_rhythm(incorrect, sr)
+    #print(incorrect_rhythm)
+    rhythm_score, rhythm_errors = compare_rhythm(user_rhythm, incorrect_rhythm, rhythm_leniency)
+
+    print("\n\n------------ Results ------------")
+    print("\nIncorrect length: " + str(incorrect_rhythm.size))
+    print("Correct length: " + str(user_rhythm.size))
+    print("Rhythm Score: " + str(rhythm_score))
+    print("Number of errors: " + str(len(rhythm_errors)))
+
+
+    #test_score, test_errors = algoRhythm(audio_path, sheet_music, bpm, rhythm_leniency)
+
+
+def test2():
+    path = './Testing Data/'
+    correct = '/User Ex1 - 80bpm correct.wav'
+    incorrect = '/User Ex1 - 80bpm incorrect1.wav'
+    signal, sr = librosa.load(path + correct)
+    actual_signal, sr = librosa.load(path + incorrect)
+    bpm = 80
+    user_rhythm = extract_user_rhythm(signal, sr)
+    actual_rhythm = extract_user_rhythm(actual_signal, sr)
+
+    # Compare user rhythm with correct rhythm
+    rhythm_leniency = .05
+    #rhythm_score, rhythm_errors = compare_rhythm(user_rhythm, actual_rhythm, rhythm_leniency)
+    score, error_margins, error_timestamps = compare_onsets(signal, actual_signal, rhythm_leniency)
+    print('Error margins per onset:', error_margins)
+    print('Timesteps of Errors:', error_timestamps)
+    print('Score:', score)
+
+    # Plot user rhythm against correct rhythm over time
+    plot_bpm_over_time(signal, actual_signal, sr)
+
+    # Plot onsets of user signal against the correct beat placements
+    user_bpm, target_bpm, nrmse = plot_performance(signal, actual_signal, sr)
+    print('User BPM:', round(user_bpm, 1))
+    print('Target BPM:', round(target_bpm, 1))
+    print('Normalized Root Mean Squared Error:', round(nrmse, 3))
+
+
+### Run tests ###
+
+test2()
+
+
+
+### DEPRECATED FUNCTIONS ###
 
 ##################################
 ##      utilities for pitch     ##
 ##################################
+
 
 def extract_user_pitch(signal):
     '''
@@ -382,7 +721,7 @@ def get_cent_diff(user_pitch):
 
 def find_closest(pitch):
     '''
-    Inputs: user pitch (bertz)
+    Inputs: user pitch (hertz)
 
     Returns index of closest in-tune pitch
     '''
@@ -396,4 +735,47 @@ def find_closest(pitch):
         
     return (index-1)
 
+def calculate_delta_time(onsets):
+    '''
+    Inputs: onsets from user signal or sheet music rhythm
+    Outputs: difference in time from each onset to the next
+    '''
+    d_time = np.zeros(onsets.shape)
+    for i in range(1, onsets.size-1, 1):
+        d_time[i] = onsets[i] - onsets[i-1]
 
+    return d_time
+
+
+def compare_rhythm(user_rhythm, actual_rhythm, leniency):
+    """
+    Inputs: user's rhythm (np.array of timesteps of onsets), actual
+    rhythm (np.array of timesteps of onsets)
+    Outputs: score for accuracy (0-100), timesteps of errors (list)
+
+    """
+    errors = []
+
+    diff = actual_rhythm.size - user_rhythm.size # extra or missing notes
+
+    # calculate delta_time and align first note to zero
+    d_user = calculate_delta_time(user_rhythm)
+    d_actual = calculate_delta_time(actual_rhythm)
+
+    for i in range(1, d_actual.size):
+        if d_actual[i]-leniency < d_user[i] < d_actual[i]+leniency:
+            # correct, move on
+            #print("noice", i)
+            print()
+
+        else:
+            # add timestep to errors
+            #print("BAD", i)
+            errors.append(user_rhythm[i])
+
+            # try to figure out if extra
+            # not implemented
+
+    score = 100 - (len(errors) / actual_rhythm.size) * 100
+
+    return score, errors
