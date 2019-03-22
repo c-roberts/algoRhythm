@@ -54,8 +54,8 @@ def submit():
 
     
     rhythm_score, rhythm_errors = algoRhythm.algoRhythm(audio_path, sheet_music, BPM, leniency)
-    rhythm_score = 40
-    rhythm_errors = [4,5,6,7]
+    #rhythm_score = 40
+    #rhythm_errors = [4,5,6,7]
     # display score 
     # change color based on score?
     mistakes = len(rhythm_errors)
