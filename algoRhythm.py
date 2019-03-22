@@ -177,7 +177,7 @@ def xml_to_ly(filepath, p = False):
         filepath: location of xml file
         p: bool to print cmd response
     '''
-    file = './Test_Data/'+filepath
+    file = filepath
     cmd = 'musicxml2ly -a '+file
     returned_value = os.system(cmd)
     if returned_value != 0:
@@ -555,15 +555,7 @@ def ly_markup(error_margins, error_timestamps, error_types, filename, output_nam
 ### Testing functions ###
 
 def test1():
-    '''
-    my_signal, sr = librosa.load("Testing Data/test5.wav", sr=None)
-    test=extract_user_rhythm(my_signal)
-    print(test)
-    d_test= calculate_delta_time(test)
-    print(d_test)
-    test_xml = extract_actual_rhythm("./Testing Data/test5.xml", 120)
-    print(test_xml)
-    '''
+
     audio_path = "./Documents/GitHub/algoRhythm/Testing_Data/Ex1_80bmp_midi_piano.wav"
     sheet_music = "./documents/github/algorhythm/Testing_Data/Ex1.xml"
     bpm=80
@@ -577,36 +569,10 @@ def test1():
     return
 
 
-def test2():
-    path = './Testing Data/'
-    correct = '/User Ex1 - 80bpm correct.wav'
-    incorrect = '/User Ex1 - 80bpm incorrect1.wav'
-    signal, sr = librosa.load(path + correct)
-    actual_signal, sr = librosa.load(path + incorrect)
-    bpm = 80
-    user_rhythm = extract_user_rhythm(signal, sr)
-    actual_rhythm = extract_user_rhythm(actual_signal, sr)
-
-    # Compare user rhythm with correct rhythm
-    rhythm_leniency = .05
-    #rhythm_score, rhythm_errors = compare_rhythm(user_rhythm, actual_rhythm, rhythm_leniency)
-    score, error_margins, error_timestamps = compare_onsets(signal, actual_signal, rhythm_leniency)
-    print('Error margins per onset:', error_margins)
-    print('Timesteps of Errors:', error_timestamps)
-    print('Score:', score)
-
-    # Plot user rhythm against correct rhythm over time
-    plot_bpm_over_time(signal, actual_signal, sr)
-
-    # Plot onsets of user signal against the correct beat placements
-    user_bpm, target_bpm, nrmse = plot_performance(signal, actual_signal, sr)
-    print('User BPM:', round(user_bpm, 1))
-    print('Target BPM:', round(target_bpm, 1))
-    print('Normalized Root Mean Squared Error:', round(nrmse, 3))
 
 
 ### Run tests ###
-test1()
+#test1()
 
 
 
