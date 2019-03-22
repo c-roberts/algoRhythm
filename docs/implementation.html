@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Implementation</title>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="description" content="Music template project">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" type="text/css" href="styles/bootstrap-4.1.2/bootstrap.min.css">
+<link href="plugins/font-awesome-4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+<link rel="stylesheet" type="text/css" href="styles/elements.css">
+<link rel="stylesheet" type="text/css" href="styles/elements_responsive.css">
+</head>
+<body>
+
+<div class="super_container">
+	
+	<!-- Header -->
+
+<header class="header">
+	<div class="container">
+		<div class="row">
+			<div class="col">
+				<div class="header_content d-flex flex-row align-items-center justify-content-center">
+
+					<!-- Logo -->
+					<div class="logo">
+						<a href="#" class="d-flex flex-row align-items-end justify-content-start">
+							<span class="logo_bars d-flex flex-row align-items-end justify-content-between"><span></span><span></span><span></span><span></span><span></span></span>
+							<span class="logo_text">algoRhythm</span>
+						</a>
+					</div>
+
+					<!-- Main Navigation -->
+					<nav class="main_nav">
+						<ul class="d-flex flex-row align-items-center justify-content-start">
+							<li><a href="index.html">Home</a></li>
+							<li><a href="about.html">About</a></li>
+							<li><a style="color: #2ac275;" href="implementation.html">Implementation</a></li>
+							<li><a href="https://github.com/c-roberts/algoRhythm/">Github</a></li>
+							<li><a href="contact.html">Contact</a></li>
+						</ul>
+					</nav>
+
+				</div>
+			</div>
+		</div>
+	</div>
+</header>
+
+	<!-- Menu -->
+
+	<div class="menu">
+			<div class="menu_container">
+				<div class="menu_background"></div>
+				<div class="menu_close"><i class="fa fa-times" aria-hidden="true"></i></div>
+				<div class="menu_content d-flex flex-column align-items-center justify-content-start">
+					<nav class="menu_nav">
+						<ul class="d-flex flex-column align-items-center justify-content-start">
+							<li><a href="index.html">Home</a></li>
+							<li><a href="about.html">About</a></li>
+							<li><a style="color: #2ac275;" href="Implementation.html">Implementation</a></li>
+							<li><a href="https://github.com/c-roberts/algoRhythm/">Github</a></li>
+							<li><a href="contact.html">Contact</a></li>
+						</ul>
+					</nav>
+				</div>
+			</div>
+		</div>
+
+
+
+	<!-- Home -->
+
+	<div class="home">
+		<div class="parallax_background parallax-window" data-parallax="scroll" data-image-src="images/background2.jpg" data-speed="0.8"></div>
+		<div class="home_container">
+			<div class="container">
+				<div class="row">
+					<div class="col">
+						<div class="home_content text-center">
+							<div class="home_title">Implementation</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Text Area -->
+
+	<div class="elements">
+		<div class="container">
+			<div class="text-area">
+				<h3>Dependencies</h3>
+				<div class="dep"><ul style="padding-left:15px;">
+					<li><a href="https://www.python.org/downloads/release/python-371/">Python 3.5+</a></li>
+					<li><a href="http://www.numpy.org/">Numpy</a></li>
+					<li><a href="https://librosa.github.io/librosa/">Librosa</a></li>
+					<li><a href="https://www.scipy.org/">Scipy</a></li>
+					<li><a href="https://pypi.org/project/python-ly/"> Lilypond</a></li>
+
+				</ul></div><br>
+				<h3>Backend</h3>
+					
+						<img style="display:block;margin:auto;" id="flow" src="images/flow.png" alt="Control flow for algoRhythm" width="800" height="170">
+						<p><br>The user inputs an XML score and their performance of it.
+						The score is converted to the Lilypond format, which is easily parsable as text. The duration of notes is read, and the 
+						timesteps of the onsets are then derived based on the user's tempo and outputted into a Numpy arrray. The onsets of the 
+						user's performance are obtained using Librosa's <a href="https://librosa.github.io/librosa/generated/librosa.onset.onset_detect.html">
+						onset detection</a> module.</p>
+
+						<p>The two arrays are compared iteratively using what we call <i>delta-time</i>. This is calculated as <i>dt<sub>i</sub> =
+						time<sub>i</sub> - time<sub>i-1</sub></i>. If the user adds an extra note or misses an early rhythm, the later relationships are 
+						preserved, whereas if we looked solely at the timesteps of onsets, any early mistake would shift later onsets. This also aligns the first onset
+						to zero, compensating for any empty space in the user's recording.</p>
+
+						<p>As a perfect performance is humanly impossible, we use a leniency value to allow for some amount of error tolerance; this is scalable by
+						the user to control for differing skills levels. If the user's onset is outside of the tolerance, it is marked as incorrect, and the 
+						timestep and index are recorded. A final accuract score is calculated at the end given by the ratio of correct notes over the total notes.
+					</p><br>
+
+				<h3>Interface</h3>
+					<p>Our interface is implemented in Tkinter, Python's de-facto standard GUI package:<br><br>
+						<img style="display:block;margin:auto;padding-bottom:40px;" src="images/interface1.png" alt="Control flow for algoRhythm" width="800" height="400">
+						<img style="display:block;margin:auto;" src="images/interface2.png" alt="Control flow for algoRhythm" width="800" height="400"><br>
+					</p>
+				<h3>Dataset</h3>
+					<p>
+						We used a researcher-generated dataset to test our system, consisting of
+						XML scores, MIDI piano WAVs, and human performances of our scores at varying levels
+						of correctness. You can access our testing set <a href="https://github.com/c-roberts/algoRhythm/tree/master/Testing%20Data">here</a>.
+					</p>
+				<br><h3>Related Research</h3>
+					<p><a href="www.jstor.org/stable/3680714">Chin, Francis, and Stephen Wu. “An Efficient Algorithm for Rhythm-Finding.” Computer Music Journal, vol. 16, no. 2, 
+					1992, pp. 35–44.</a> </p>
+
+					<p><a href="www.ee.columbia.edu/~dpwe/pubs/Ellis07-beattrack.pdf">Ellis, Daniel (2007). “Beat Tracking by Dynamic Programming.” J. New Music Research, Special Issue on Beat and
+							Tempo Extraction, vol. 36 no. 1, March 2007, pp. 51-60. 
+							DOI: 10.1080/09298210701653344</a></p> 
+					
+					<p><a href=" https://asa.scitation.org/doi/pdf/10.1121/1.421129?class=pdf.">Scheirer, Eric D. “Tempo and Beat Analysis of Acoustic Musical Signals.” The Journal of the 
+						Acoustical Society of America, vol. 103, no. 1, 1998, pp. 588–601., 
+						doi:10.1121/1.421129</a></p>
+					
+					<p><a href="https://ieeexplore.ieee.org/abstract/document/6287906">A. Gkiokas, V. Katsouros, G. Carayannis and T. Stajylakis, "Music tempo estimation and beat tracking by applying source separation and metrical relations," 2012 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), Kyoto, 2012, pp. 421-424.
+					doi: 10.1109/ICASSP.2012.6287906</a></p>
+			</div>
+
+		</div>
+	</div>
+
+	<!-- Footer -->
+
+	<footer class="footer">
+		<div class="background_image" style="background-image:url(images/footer.jpg)"></div>
+		<div class="footer_content">
+			<div class="container">
+				<div class="row">
+					<div class="col text-center">
+
+						<!-- Logo -->
+						<div class="logo">
+							<a href="#" class="d-flex flex-row align-items-end justify-content-start">
+								<span class="logo_bars d-flex flex-row align-items-end justify-content-between"><span></span><span></span><span></span><span></span><span></span></span>
+								<span class="logo_text">algoRhythm</span>
+							</a>
+						</div>
+
+
+
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="footer_bar">
+			<div class="container">
+				<div class="row">
+					<div class="col">
+						<div class="copyright text-center"><!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | This template is made with <i class="fa fa-heart-o" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a>
+<!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. --></div>
+					</div>
+				</div>
+			</div>
+		</div>
+			
+	</footer>
+</div>
+
+<script src="js/jquery-3.3.1.min.js"></script>
+<script src="styles/bootstrap-4.1.2/popper.js"></script>
+<script src="styles/bootstrap-4.1.2/bootstrap.min.js"></script>
+<script src="plugins/greensock/TweenMax.min.js"></script>
+<script src="plugins/greensock/TimelineMax.min.js"></script>
+<script src="plugins/scrollmagic/ScrollMagic.min.js"></script>
+<script src="plugins/greensock/animation.gsap.min.js"></script>
+<script src="plugins/greensock/ScrollToPlugin.min.js"></script>
+<script src="plugins/jPlayer/jquery.jplayer.min.js"></script>
+<script src="plugins/jPlayer/jplayer.playlist.min.js"></script>
+<script src="plugins/easing/easing.js"></script>
+<script src="plugins/progressbar/progressbar.min.js"></script>
+<script src="plugins/parallax-js-master/parallax.min.js"></script>
+<script src="plugins/scrollTo/jquery.scrollTo.min.js"></script>
+<script src="plugins/jquery-circle-progress-1.2.2/circle-progress.js"></script>
+<script src="js/elements.js"></script>
+</body>
+</html>

@@ -44,8 +44,10 @@ def closeProgram():
 
 def submit():
     BPM = tempo.get()
-    if (type(BPM) != int):
+    if (type(int(BPM)) != int):
         progress['text'] = 'Please enter an integer value for tempo.'
+        return
+    
     #rhythm_score, rhythm_errors = algoRhythm.algoRhythm(audio_path, sheet_music, BPM, leniency)
     rhythm_score = 40
     rhythm_errors = [4,5,6,7]
@@ -62,6 +64,7 @@ def submit():
     else:
         score_['fg'] = 'red'
     mistakes_['text']=(str(mistakes) + " missed rhythms")
+    progress['text'] = 'Downloading report...'
 
 def clear():
 
@@ -128,7 +131,7 @@ submit_butt = Button(window, text="Submit", fg="white", bg="orange",
 submit_butt.pack(side=BOTTOM, anchor=S, fill='both')
 
 # Progress text input #############
-progress = Label(window, text='Please load data files.')
+progress = Label(window, text='Please load data files.', font=('Sans','14'))
 progress.pack(side=BOTTOM)
 
 
