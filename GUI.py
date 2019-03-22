@@ -10,7 +10,7 @@ def inputWAV():
         inputDataFile = askopenfilename()
         inDataFile = open(inputDataFile, 'r')
 
-        if "wav" in inDataFile:
+        if ".wav" in inDataFile:
             audio_path = inDataFile
         else:
             progress['text'] = 'Data not recognized. Make sure file is .WAV format.'
@@ -26,7 +26,7 @@ def inputXML():
         inputDataFile = askopenfilename()
         inDataFile = open(inputDataFile, 'r')
 
-        if "wav" in inDataFile:
+        if ".xml" in inDataFile:
             sheet_music = inDataFile
         else:
             progress['text'] = 'Data not recognized. Make sure file is .XML format.'
@@ -52,11 +52,11 @@ def submit():
         progress['text'] = 'Please enter an integer value for tempo.'
         return
 
-    
+
     rhythm_score, rhythm_errors = algoRhythm.algoRhythm(audio_path, sheet_music, BPM, leniency)
     #rhythm_score = 40
     #rhythm_errors = [4,5,6,7]
-    # display score 
+    # display score
     # change color based on score?
     mistakes = len(rhythm_errors)
     #print(mistakes)
@@ -130,7 +130,7 @@ window.geometry('1000x400')
 window.resizable(False, False)
 
 
-submit_butt = Button(window, text="Submit", fg="white", bg="orange", 
+submit_butt = Button(window, text="Submit", fg="white", bg="orange",
                             activebackground="pink", command=submit,
                             height=1, width=20, font=('Sans','14','bold'))
 submit_butt.pack(side=BOTTOM, anchor=S, fill='both')
@@ -150,12 +150,12 @@ butt_frame=Frame(in_frame)
 padding1=Frame(in_frame)
 #padding1.grid(row=0, column=0, columnspan= 2, padx=20, pady=30)
 
-in_sheet = Button(butt_frame, text="Input Sheet Music", fg="white", bg="blue", 
+in_sheet = Button(butt_frame, text="Input Sheet Music", fg="white", bg="blue",
                               activebackground="light blue", command=inputXML,
                               height=1, width=17, font=('Sans','14','bold'))
 in_sheet.grid(row=0, column=0, padx=20)
 
-in_wav = Button(butt_frame, text="Input Performance", fg="white", bg="green", 
+in_wav = Button(butt_frame, text="Input Performance", fg="white", bg="green",
                             activebackground="light green", command=inputWAV,
                             height=1, width=17, font=('Sans','14','bold'))
 in_wav.grid(row=0, column=1)
