@@ -74,13 +74,13 @@ def algoRhythm(sheet_file, user_signal, bpm, leniency, out):
 ### Plotting functions ###
 
 def plot_bpm_over_time(user, actual, sr):
-    onset_env_user = librosa.onset.onset_strength(user, sr=sr)
-    onset_env_actual = librosa.onset.onset_strength(actual, sr=sr)
-    user_rhythm = librosa.beat.tempo(onset_envelope=onset_env_user, sr=sr, aggregate=None)
-    actual_rhythm = librosa.beat.tempo(onset_envelope=onset_env_actual, sr=sr, aggregate=None)
+    onset_env_user = librosa.onset.onset_strength(user, sr=standard_sr)
+    onset_env_actual = librosa.onset.onset_strength(actual, sr=standard_sr)
+    user_rhythm = librosa.beat.tempo(onset_envelope=onset_env_user, sr=standard_sr, aggregate=None)
+    actual_rhythm = librosa.beat.tempo(onset_envelope=onset_env_actual, sr=standard_sr, aggregate=None)
 
     plt.figure(figsize=(8, 4))
-    tg = librosa.feature.tempogram(onset_envelope=onset_env_actual, sr=sr)
+    tg = librosa.feature.tempogram(onset_envelope=onset_env_actual, sr=standard_sr)
     librosa.display.specshow(tg, x_axis='time', y_axis='tempo')
     user_time = librosa.frames_to_time(np.arange(len(user_rhythm)))
     actual_time = librosa.frames_to_time(np.arange(len(actual_rhythm)))
@@ -94,13 +94,13 @@ def plot_bpm_over_time(user, actual, sr):
 def plot_performance(user, actual, sr):
     onset_env_user = librosa.onset.onset_strength(user, sr=sr, aggregate=np.median)
     onset_env_actual = librosa.onset.onset_strength(actual, sr=sr, aggregate=np.median)
-    user_rhythm, user_beats = librosa.beat.beat_track(onset_envelope=onset_env_user, sr=sr)
-    actual_rhythm, actual_beats = librosa.beat.beat_track(onset_envelope=onset_env_actual, sr=sr)
+    user_rhythm, user_beats = librosa.beat.beat_track(onset_envelope=onset_env_user, sr=standard_sr)
+    actual_rhythm, actual_beats = librosa.beat.beat_track(onset_envelope=onset_env_actual, sr=standard_sr)
     nrms = np.sqrt(((user_rhythm - actual_rhythm) ** 2).mean()) / np.mean(actual_rhythm)
 
     plt.figure(figsize=(8, 4))
-    user_onset_times = librosa.frames_to_time(np.arange(len(onset_env_user)), sr=sr)
-    actual_onset_times = librosa.frames_to_time(np.arange(len(onset_env_actual)), sr=sr)
+    user_onset_times = librosa.frames_to_time(np.arange(len(onset_env_user)), sr=standard_sr)
+    actual_onset_times = librosa.frames_to_time(np.arange(len(onset_env_actual)), sr=standard_sr)
     plt.plot(user_onset_times, librosa.util.normalize(onset_env_user), label='User Signal')
     plt.vlines(actual_onset_times[actual_beats], 0, 1, alpha=0.6, color='r', linestyle='--', label='Target Beats')
     plt.title('User Signal vs Target Beats')
