@@ -2,9 +2,9 @@ from IPython.display import Audio
 import IPython, numpy as np, scipy as sp, matplotlib.pyplot as plt, matplotlib, librosa
 import os
 from ly import *
+import madmom as mm
 #import musicxml2ly
 from librosa import display
-
 
 standard_sr = 44100
 
@@ -69,47 +69,6 @@ def algoRhythm(sheet_file, user_signal, bpm, leniency, out):
 
     return score, error_timestamps
 
-
-
-### Plotting functions ###
-
-def plot_bpm_over_time(user, actual, sr):
-    onset_env_user = librosa.onset.onset_strength(user, sr=standard_sr)
-    onset_env_actual = librosa.onset.onset_strength(actual, sr=standard_sr)
-    user_rhythm = librosa.beat.tempo(onset_envelope=onset_env_user, sr=standard_sr, aggregate=None)
-    actual_rhythm = librosa.beat.tempo(onset_envelope=onset_env_actual, sr=standard_sr, aggregate=None)
-
-    plt.figure(figsize=(8, 4))
-    tg = librosa.feature.tempogram(onset_envelope=onset_env_actual, sr=standard_sr)
-    librosa.display.specshow(tg, x_axis='time', y_axis='tempo')
-    user_time = librosa.frames_to_time(np.arange(len(user_rhythm)))
-    actual_time = librosa.frames_to_time(np.arange(len(actual_rhythm)))
-    plt.plot(user_time, user_rhythm, color='r', linewidth=1.5, label='User Signal')
-    plt.plot(actual_time, actual_rhythm, color='g', linewidth=1.5, label='Actual Signal')
-    plt.title('User BPM vs Target BPM Over Time')
-    plt.legend(frameon=True)
-    plt.show()
-
-
-def plot_performance(user, actual, sr):
-    onset_env_user = librosa.onset.onset_strength(user, sr=sr, aggregate=np.median)
-    onset_env_actual = librosa.onset.onset_strength(actual, sr=sr, aggregate=np.median)
-    user_rhythm, user_beats = librosa.beat.beat_track(onset_envelope=onset_env_user, sr=standard_sr)
-    actual_rhythm, actual_beats = librosa.beat.beat_track(onset_envelope=onset_env_actual, sr=standard_sr)
-    nrms = np.sqrt(((user_rhythm - actual_rhythm) ** 2).mean()) / np.mean(actual_rhythm)
-
-    plt.figure(figsize=(8, 4))
-    user_onset_times = librosa.frames_to_time(np.arange(len(onset_env_user)), sr=standard_sr)
-    actual_onset_times = librosa.frames_to_time(np.arange(len(onset_env_actual)), sr=standard_sr)
-    plt.plot(user_onset_times, librosa.util.normalize(onset_env_user), label='User Signal')
-    plt.vlines(actual_onset_times[actual_beats], 0, 1, alpha=0.6, color='r', linestyle='--', label='Target Beats')
-    plt.title('User Signal vs Target Beats')
-    plt.legend(frameon=True)
-    plt.show()
-
-    return user_rhythm, actual_rhythm, nrms
-
-
 ###################################
 ##      utilities for rhythm     ##
 ###################################
@@ -124,10 +83,22 @@ def extract_user_rhythm(signal):
 
     '''
     signal , sr = librosa.core.load(signal)
-    signal = librosa.util.normalize(signal, norm=2)
-    rhythm_arr = librosa.onset.onset_detect(signal, sr=standard_sr, units='time', wait=10, pre_avg=3, post_avg=3, pre_max=3, post_max=3)
+    #spec = mm.audio.spectrogram.Spectrogram(signal)
+    #sf = mm.features.onsets.spectral_flux(spec)
+    proc = mm.features.onsets.OnsetPeakPickingProcessor(fps=100)
+    act = mm.features.onsets.RNNOnsetProcessor()(signal, wait=10, pre_avg=3, post_avg=3, pre_max=3, post_max=3)
+    rhythm_arr = proc(act)
 
     return rhythm_arr
+
+
+def extract_user_rhythm_old(signal):
+    #signal , sr = librosa.core.load(signal)
+    rhythm_arr = librosa.onset.onset_detect(signal, sr=standard_sr, units='time', wait=10, pre_avg=3, post_avg=3, pre_max=3, post_max=3)
+    
+    return rhythm_arr
+
+
 
 
 
@@ -566,9 +537,9 @@ def test1():
 
     signal, sr = librosa.load(audio_path, sr=None)
 
-    user_rhythm = extract_user_rhythm(signal, sr)
-    incorrect, sr = librosa.load( "./Testing Data/Ex1_80bpm incorrect1.wav", sr=None)
-    incorrect_rhythm = extract_user_rhythm(incorrect, sr)
+    user_rhythm = extract_user_rhythm(signal)
+    incorrect, sr = librosa.load( "./Testing_Data/Ex1_80bpm incorrect1.wav", sr=None)
+    incorrect_rhythm = extract_user_rhythm(incorrect)
     rhythm_score, rhythm_errors = compare_rhythm(user_rhythm, incorrect_rhythm, rhythm_leniency)
 
     print("\n\n------------ Results ------------")
@@ -579,6 +550,55 @@ def test1():
 
 
     test_score, test_errors = algoRhythm(audio_path, sheet_music, bpm, rhythm_leniency)
+
+def test2():
+    path='documents/github/algorhythm/'
+    audio_path=path+"./Old_Data/bpm80_quarternotes.wav" #15 onsets
+    signal, sr = librosa.load(audio_path, sr=None)
+    print("\nActual onsets: 15")
+    #print("Libosa Onset Detect: ", extract_user_rhythm_old(signal).size)
+    print("Madmom Onset Detect: ", extract_user_rhythm(signal).size)
+
+    audio_path=path+"./Old_Data/empty_signal.wav" #0 onsets
+    signal, sr = librosa.load(audio_path, sr=None)
+    print("\nActual onsets: 0")
+    #print("Libosa Onset Detect: ", extract_user_rhythm_old(signal).size)
+    print("Madmom Onset Detect: ", extract_user_rhythm(signal).size)
+
+    audio_path=path+"./Old_Data/Ex1_80bmp_midi_piano.wav" #21 onsets
+    signal, sr = librosa.load(audio_path, sr=None)
+    print("\nActual onsets: 21")
+    #print("Libosa Onset Detect: ", extract_user_rhythm_old(signal).size)
+    print("Madmom Onset Detect: ", extract_user_rhythm(signal).size)
+
+    
+    audio_path=path+"./Old_Data/Ex1_80bpm_correct.wav" #21 onsets
+    signal, sr = librosa.load(audio_path, sr=None)
+    print("\nActual onsets: 21")
+    #print("Libosa Onset Detect: ", extract_user_rhythm_old(signal).size)
+    print("Madmom Onset Detect: ", extract_user_rhythm(signal).size)
+
+    audio_path=path+"./Old_Data/Ex1_120bpm_midi.wav" #21 onsets
+    signal, sr = librosa.load(audio_path, sr=None)
+    print("\nActual onsets: 21")
+    #print("Libosa Onset Detect: ", extract_user_rhythm_old(signal).size)
+    print("Madmom Onset Detect: ", extract_user_rhythm(signal).size)
+
+    audio_path=path+"./Old_Data/Ex3_70bpm_correct.wav" #20 onsets
+    signal, sr = librosa.load(audio_path, sr=None)
+    print("\nActual onsets: 20")
+    #print("Libosa Onset Detect: ", extract_user_rhythm_old(signal).size)
+    print("Madmom Onset Detect: ", extract_user_rhythm(signal).size)
+
+    audio_path=path+"./Old_Data/Ex3_120bpm_midi.wav" #20 onsets
+    signal, sr = librosa.load(audio_path, sr=None)
+    print("\nActual onsets: 20")
+    #print("Libosa Onset Detect: ", extract_user_rhythm_old(signal).size)
+    print("Madmom Onset Detect: ", extract_user_rhythm(signal).size)
+
+
+
+#test2()
 #test1()
 
 #
